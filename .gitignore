@@ -10,6 +10,8 @@ target/
 *.war
 *.ear
 *.nar
+# Re-allow Maven wrapper jar (overrides *.jar above)
+!.mvn/wrapper/maven-wrapper.jar
 
 # ─── IDE ─────────────────────────────────────────────────────────────────────
 # IntelliJ IDEA

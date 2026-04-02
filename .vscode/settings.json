@@ -9,7 +9,10 @@
   ],
   "java.compile.nullAnalysis.mode": "disabled",
   "java.configuration.updateBuildConfiguration": "automatic",
-  "maven.executable.path": "C:\\Data\\apache-maven-3.9.9\\bin\\mvn",
   "java.import.maven.enabled": true,
-  "java.import.gradle.enabled": false
+  "java.import.gradle.enabled": false,
+  "maven.executable.path": "C:\\Data\\apache-maven-3.9.9\\bin\\mvn.cmd",
+  "maven.executable.preferMavenWrapper": false,
+  "java.configuration.maven.userSettings": "",
+  "java.jdt.ls.vmargs": "-Xmx2G -XX:+UseG1GC -Djava.home=C:\\Data\\jdk-21.0.6+7"
 }
