@@ -1,0 +1,14 @@
+package io.innait.wiam.authorchestrator.statemachine;
+
+public enum AuthEvent {
+    LOGIN_ID_SUBMITTED,
+    PRIMARY_CHALLENGE_ISSUED,
+    PRIMARY_FACTOR_VERIFIED,
+    PRIMARY_FACTOR_FAILED,
+    MFA_CHALLENGE_ISSUED,
+    MFA_FACTOR_VERIFIED,
+    MFA_FACTOR_FAILED,
+    AUTH_COMPLETED,
+    AUTH_ABORTED,
+    TIMEOUT
+}

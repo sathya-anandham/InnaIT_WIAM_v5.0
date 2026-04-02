@@ -1,0 +1,20 @@
+@import 'primeflex/primeflex';
+
+:root {
+  --innait-primary: #1976d2;
+  --innait-primary-light: #42a5f5;
+  --innait-accent: #ff6f00;
+  --innait-bg: #f5f5f5;
+  --innait-surface: #ffffff;
+  --innait-text: #212121;
+  --innait-text-secondary: #757575;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
+  background-color: var(--innait-bg);
+  color: var(--innait-text);
+}

@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    url: ${ORACLE_URL}
+
+logging:
+  level:
+    io.innait.wiam: INFO

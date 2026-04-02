@@ -1,0 +1,4 @@
+logging:
+  level:
+    io.innait.wiam: DEBUG
+    org.springframework.security: DEBUG

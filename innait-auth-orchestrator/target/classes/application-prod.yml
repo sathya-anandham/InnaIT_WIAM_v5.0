@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: ${ORACLE_URL}
+
+logging:
+  level:
+    root: WARN
+    io.innait.wiam: INFO
+
+server:
+  error:
+    include-stacktrace: never
