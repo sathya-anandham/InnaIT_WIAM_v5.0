@@ -1,5 +1,0 @@
-logging:
-  level:
-    io.innait.wiam: DEBUG
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.security: DEBUG

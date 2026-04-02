@@ -1,0 +1,92 @@
+# ─── Maven build output ──────────────────────────────────────────────────────
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ─── Compiled class files ────────────────────────────────────────────────────
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# ─── IDE ─────────────────────────────────────────────────────────────────────
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Eclipse / STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code (keep .vscode/settings.json intentionally)
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# ─── Spring Boot ─────────────────────────────────────────────────────────────
+spring-shell.log
+
+# ─── Node / Angular ──────────────────────────────────────────────────────────
+node_modules/
+dist/
+.angular/
+.nx/cache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.npm
+*.tgz
+
+# ─── OS / system ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ─── Secrets / environment ───────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.p12
+*.jks
+*.pem
+*.key
+application-secret*.yml
+application-secret*.yaml
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
+log/
+
+# ─── Test reports ────────────────────────────────────────────────────────────
+surefire-reports/
+failsafe-reports/
+
+# ─── Coverage ────────────────────────────────────────────────────────────────
+jacoco.exec
+jacoco/
+
+# ─── Misc ────────────────────────────────────────────────────────────────────
+*.orig
+HELP.md
