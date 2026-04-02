@@ -12,6 +12,10 @@ export * from './lib/models/auth-state.model';
 // Services
 export * from './lib/services/auth.service';
 export * from './lib/services/tenant.service';
+export * from './lib/services/theming.service';
+export * from './lib/services/toast.service';
+export * from './lib/services/offline.service';
+export * from './lib/services/idle.service';
 
 // Interceptors
 export * from './lib/interceptors/auth.interceptor';

@@ -2,6 +2,8 @@ package io.innait.wiam.common.exception;
 
 public class ConcurrencyException extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     private final String entityType;
     private final String entityId;
 

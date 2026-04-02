@@ -151,7 +151,7 @@ class AuditEventMapperTest {
 
             EventEnvelope<Map<String, Object>> envelope = new EventEnvelope<>(
                     UUID.randomUUID(), "v1", "user.created",
-                    tenantId, correlationId, now, actorId, "USER",
+                    tenantId, correlationId, now, actorId, "USER", null,
                     Map.of("ip_address", "10.0.0.1", "subject_id", UUID.randomUUID().toString()));
 
             AuditEvent result = mapper.mapToAuditEvent(envelope, "innait.identity.user.created");
@@ -175,7 +175,7 @@ class AuditEventMapperTest {
         void shouldHandleNullPayload() {
             EventEnvelope<Object> envelope = new EventEnvelope<>(
                     UUID.randomUUID(), "v1", "user.created",
-                    UUID.randomUUID(), null, Instant.now(), null, null, null);
+                    UUID.randomUUID(), null, Instant.now(), null, null, null, null);
 
             AuditEvent result = mapper.mapToAuditEvent(envelope, "innait.identity.user.created");
 

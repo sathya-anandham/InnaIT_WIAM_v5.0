@@ -4,6 +4,8 @@ import java.util.UUID;
 
 public class TenantMismatchException extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     private final UUID expectedTenantId;
     private final UUID actualTenantId;
 

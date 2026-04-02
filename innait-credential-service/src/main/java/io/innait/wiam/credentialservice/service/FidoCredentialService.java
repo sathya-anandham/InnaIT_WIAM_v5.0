@@ -240,8 +240,8 @@ public class FidoCredentialService {
 
         CredentialRecordImpl credentialRecord = new CredentialRecordImpl(
                 null, null, null, false,
-                false, credential.getSignCount(),
-                attestedCredData, null, null
+                credential.getSignCount(),
+                attestedCredData, null, null, null, null
         );
 
         AuthenticationRequest authenticationRequest = new AuthenticationRequest(

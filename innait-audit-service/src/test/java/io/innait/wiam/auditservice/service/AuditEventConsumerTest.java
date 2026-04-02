@@ -1,9 +1,6 @@
 package io.innait.wiam.auditservice.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.innait.wiam.auditservice.entity.AuditEvent;
-import io.innait.wiam.auditservice.entity.AuditOutcome;
-import io.innait.wiam.auditservice.entity.EventCategory;
 import io.innait.wiam.auditservice.repository.AuditEventRepository;
 import io.innait.wiam.auditservice.repository.SecurityIncidentRepository;
 import io.innait.wiam.common.event.EventEnvelope;
@@ -12,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -156,7 +152,7 @@ class AuditEventConsumerTest {
         void shouldSkipEventWithNullTenant() {
             EventEnvelope<Map<String, Object>> envelope = new EventEnvelope<>(
                     UUID.randomUUID(), "v1", "user.created",
-                    null, null, Instant.now(), null, null, Map.of());
+                    null, null, Instant.now(), null, null, null, Map.of());
 
             ConsumerRecord<String, EventEnvelope<?>> record = new ConsumerRecord<>(
                     "innait.identity.user.created", 0, 0, null, envelope);
@@ -173,7 +169,7 @@ class AuditEventConsumerTest {
         EventEnvelope<Map<String, Object>> envelope = new EventEnvelope<>(
                 UUID.randomUUID(), "v1", eventType,
                 UUID.randomUUID(), UUID.randomUUID(), Instant.now(),
-                UUID.randomUUID(), "SYSTEM", Map.of());
+                UUID.randomUUID(), "SYSTEM", null, Map.of());
         return new ConsumerRecord<>(topic, 0, 0, null, envelope);
     }
 

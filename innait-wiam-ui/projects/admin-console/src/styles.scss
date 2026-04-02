@@ -10,6 +10,31 @@
   --innait-surface: #ffffff;
   --innait-text: #212121;
   --innait-text-secondary: #757575;
+  --innait-sidebar-width: 260px;
+  --innait-success: #4caf50;
+  --innait-warning: #ff9800;
+  --innait-danger: #f44336;
+}
+
+// Dark mode overrides (applied via ThemingService body class)
+body.innait-dark {
+  --innait-primary: #64b5f6;
+  --innait-primary-light: #90caf9;
+  --innait-accent: #ffab40;
+  --innait-bg: #121212;
+  --innait-surface: #1e1e1e;
+  --innait-text: #e0e0e0;
+  --innait-text-secondary: #9e9e9e;
+  --innait-success: #66bb6a;
+  --innait-warning: #ffa726;
+  --innait-danger: #ef5350;
+
+  --primary-color: #64b5f6;
+  --surface-ground: #121212;
+  --surface-card: #1e1e1e;
+  --surface-border: #333333;
+  --text-color: #e0e0e0;
+  --text-color-secondary: #9e9e9e;
 }
 
 html, body {
@@ -19,4 +44,60 @@ html, body {
   font-family: 'Roboto', 'Segoe UI', sans-serif;
   background-color: var(--innait-bg);
   color: var(--innait-text);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+// Accessibility: high contrast mode support
+@media (forced-colors: active) {
+  :root {
+    --innait-primary: LinkText;
+    --innait-text: CanvasText;
+    --innait-bg: Canvas;
+    --innait-surface: Canvas;
+  }
+}
+
+// Focus styles for keyboard navigation
+*:focus-visible {
+  outline: 2px solid var(--innait-primary);
+  outline-offset: 2px;
+}
+
+// Responsive breakpoints
+@media (max-width: 320px) {
+  html { font-size: 14px; }
+}
+@media (min-width: 321px) and (max-width: 767px) {
+  html { font-size: 15px; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  html { font-size: 15px; }
+}
+@media (min-width: 1024px) {
+  html { font-size: 16px; }
+}
+
+// ag-Grid theme overrides
+.ag-theme-alpine {
+  --ag-header-background-color: var(--innait-surface);
+  --ag-border-color: #e0e0e0;
+  --ag-row-hover-color: rgba(25, 118, 210, 0.04);
+  --ag-selected-row-background-color: rgba(25, 118, 210, 0.08);
+  --ag-font-family: 'Roboto', 'Segoe UI', sans-serif;
+  --ag-font-size: 0.875rem;
+}
+
+body.innait-dark .ag-theme-alpine {
+  --ag-background-color: var(--innait-surface);
+  --ag-header-background-color: #252525;
+  --ag-border-color: #333333;
+  --ag-row-hover-color: rgba(100, 181, 246, 0.08);
+  --ag-selected-row-background-color: rgba(100, 181, 246, 0.12);
+  --ag-foreground-color: var(--innait-text);
+  --ag-secondary-foreground-color: var(--innait-text-secondary);
+}
+
+// Scrollbar styling
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--innait-bg); }
+::-webkit-scrollbar-thumb { background: var(--innait-text-secondary); border-radius: 3px; }

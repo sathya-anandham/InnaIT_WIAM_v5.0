@@ -50,6 +50,13 @@ export class I18nService {
   }
 
   private resolveKey(map: TranslationMap, key: string): string | undefined {
+    // Try flat dot-notation key first (e.g. 'common.save')
+    const flat = (map as Record<string, unknown>)[key];
+    if (typeof flat === 'string') {
+      return flat;
+    }
+
+    // Fall back to nested traversal (e.g. { common: { save: 'Save' } })
     const parts = key.split('.');
     let current: unknown = map;
 

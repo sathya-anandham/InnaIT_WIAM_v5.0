@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.UUID;
 
 @Configuration
 public class RestTemplateConfig {
@@ -34,15 +35,15 @@ public class RestTemplateConfig {
             }
 
             // Forward tenant ID
-            String tenantId = TenantContext.getTenantId();
+            UUID tenantId = TenantContext.getTenantId();
             if (tenantId != null) {
-                request.getHeaders().set("X-Tenant-ID", tenantId);
+                request.getHeaders().set("X-Tenant-ID", tenantId.toString());
             }
 
             // Forward correlation ID
-            String correlationId = CorrelationContext.getCorrelationId();
+            UUID correlationId = CorrelationContext.getCorrelationId();
             if (correlationId != null) {
-                request.getHeaders().set("X-Correlation-ID", correlationId);
+                request.getHeaders().set("X-Correlation-ID", correlationId.toString());
             }
 
             return execution.execute(request, body);

@@ -14,6 +14,12 @@
     <name>InnaIT WIAM - Credential Service</name>
     <description>Password hashing, WebAuthn registration, credential lifecycle</description>
 
+    <properties>
+        <maven.compiler.fork>true</maven.compiler.fork>
+        <maven.compiler.meminitial>256m</maven.compiler.meminitial>
+        <maven.compiler.maxmem>1024m</maven.compiler.maxmem>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.innait.wiam</groupId>

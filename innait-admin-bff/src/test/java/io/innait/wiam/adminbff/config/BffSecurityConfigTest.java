@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.bean.MockBean;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -64,10 +64,12 @@ class BffSecurityConfigTest {
 
         @Test
         void shouldAllowSwaggerUi() throws Exception {
-            mockMvc.perform(get("/swagger-ui/index.html"))
-                    .andExpect(status().isOk().reason((String) null))
-                    .andReturn();
             // Swagger redirect or serve — just not 401/403
+            mockMvc.perform(get("/swagger-ui/index.html"))
+                    .andExpect(status().is(org.hamcrest.Matchers.not(
+                            org.hamcrest.Matchers.anyOf(
+                                    org.hamcrest.Matchers.is(401),
+                                    org.hamcrest.Matchers.is(403)))));
         }
 
         @Test

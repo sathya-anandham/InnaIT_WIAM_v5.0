@@ -88,7 +88,7 @@ class SecurityIncidentDetectorTest {
         void shouldSkipWhenNoIpAddress() {
             EventEnvelope<Map<String, Object>> envelope = new EventEnvelope<>(
                     UUID.randomUUID(), "v1", "auth.failed",
-                    tenantId, null, Instant.now(), null, null,
+                    tenantId, null, Instant.now(), null, null, null,
                     Map.of("account_id", UUID.randomUUID().toString()));
 
             detector.detectBruteForce(envelope);
@@ -147,7 +147,7 @@ class SecurityIncidentDetectorTest {
             UUID accountId = UUID.randomUUID();
             EventEnvelope<Map<String, Object>> envelope = new EventEnvelope<>(
                     UUID.randomUUID(), "v1", "auth.succeeded",
-                    tenantId, null, Instant.now(), accountId, "USER",
+                    tenantId, null, Instant.now(), accountId, "USER", null,
                     Map.of("account_id", accountId.toString(),
                             "geo_lat", 51.5074, "geo_lon", -0.1278,
                             "ip_address", "1.2.3.4"));
@@ -171,7 +171,7 @@ class SecurityIncidentDetectorTest {
             UUID accountId = UUID.randomUUID();
             EventEnvelope<Map<String, Object>> envelope = new EventEnvelope<>(
                     UUID.randomUUID(), "v1", "auth.succeeded",
-                    tenantId, null, Instant.now(), accountId, "USER",
+                    tenantId, null, Instant.now(), accountId, "USER", null,
                     Map.of("account_id", accountId.toString(),
                             "geo_lat", 51.5074, "geo_lon", -0.1278));
 
@@ -192,7 +192,7 @@ class SecurityIncidentDetectorTest {
             UUID accountId = UUID.randomUUID();
             EventEnvelope<Map<String, Object>> envelope = new EventEnvelope<>(
                     UUID.randomUUID(), "v1", "auth.succeeded",
-                    tenantId, null, Instant.now(), accountId, "USER",
+                    tenantId, null, Instant.now(), accountId, "USER", null,
                     Map.of("account_id", accountId.toString(),
                             "geo_lat", 40.7580, "geo_lon", -73.9855));
 
@@ -231,7 +231,7 @@ class SecurityIncidentDetectorTest {
     private EventEnvelope<Map<String, Object>> createAuthFailedEvent(String ip) {
         return new EventEnvelope<>(
                 UUID.randomUUID(), "v1", "auth.failed",
-                tenantId, null, Instant.now(), null, null,
+                tenantId, null, Instant.now(), null, null, null,
                 Map.of("ip_address", ip, "account_id", UUID.randomUUID().toString()));
     }
 }

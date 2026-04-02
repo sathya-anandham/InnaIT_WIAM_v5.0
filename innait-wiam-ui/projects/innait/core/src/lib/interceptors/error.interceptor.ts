@@ -12,7 +12,6 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     retry({
       count: 2,
       delay: (error, retryCount) => {
-        // Only retry on 5xx server errors and network errors
         if (error instanceof HttpErrorResponse && error.status >= 500) {
           return timer(retryCount * 1000);
         }
@@ -28,8 +27,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         case 403:
           router.navigate(['/forbidden']);
           break;
+        case 404:
+          // Only navigate for page-level requests, not API data fetches
+          if (!req.url.includes('/api/')) {
+            router.navigate(['/not-found']);
+          }
+          break;
       }
       return throwError(() => error);
-    })
+    }),
   );
 };

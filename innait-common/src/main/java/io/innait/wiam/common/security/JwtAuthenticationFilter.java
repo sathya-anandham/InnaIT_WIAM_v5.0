@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @PostConstruct
     void init() throws Exception {
         JWKSource<SecurityContext> keySource = JWKSourceBuilder
-                .create(new URL(jwksUrl))
+                .create(URI.create(jwksUrl).toURL())
                 .retrying(true)
                 .build();
         JWSKeySelector<SecurityContext> keySelector =

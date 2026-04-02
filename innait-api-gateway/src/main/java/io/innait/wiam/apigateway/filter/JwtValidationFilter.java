@@ -24,7 +24,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -51,7 +51,7 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
     void init() {
         try {
             JWKSource<SecurityContext> keySource = JWKSourceBuilder
-                    .create(new URL(properties.getJwt().getJwksUrl()))
+                    .create(URI.create(properties.getJwt().getJwksUrl()).toURL())
                     .cache(true)
                     .build();
 

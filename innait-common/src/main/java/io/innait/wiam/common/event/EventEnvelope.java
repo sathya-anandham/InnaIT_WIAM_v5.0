@@ -14,6 +14,7 @@ public record EventEnvelope<T>(
         @JsonProperty("timestamp") Instant timestamp,
         @JsonProperty("actor_id") UUID actorId,
         @JsonProperty("actor_type") String actorType,
+        @JsonProperty("source") String source,
         @JsonProperty("payload") T payload
 ) {
 
@@ -30,6 +31,7 @@ public record EventEnvelope<T>(
         private Instant timestamp;
         private UUID actorId;
         private String actorType;
+        private String source;
         private T payload;
 
         private Builder() {
@@ -75,6 +77,11 @@ public record EventEnvelope<T>(
             return this;
         }
 
+        public Builder<T> source(String source) {
+            this.source = source;
+            return this;
+        }
+
         public Builder<T> payload(T payload) {
             this.payload = payload;
             return this;
@@ -89,7 +96,7 @@ public record EventEnvelope<T>(
             }
             return new EventEnvelope<>(
                     eventId, schemaVersion, eventType, tenantId,
-                    correlationId, timestamp, actorId, actorType, payload
+                    correlationId, timestamp, actorId, actorType, source, payload
             );
         }
     }

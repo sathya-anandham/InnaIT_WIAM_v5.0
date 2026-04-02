@@ -7,3 +7,4 @@ export * from './lib/components/page-header/page-header.component';
 export * from './lib/components/status-badge/status-badge.component';
 export * from './lib/components/search-input/search-input.component';
 export * from './lib/components/form-field/form-field.component';
+export * from './lib/components/dark-mode-toggle/dark-mode-toggle.component';
