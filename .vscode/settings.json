@@ -1,0 +1,15 @@
+{
+  "java.jdt.ls.java.home": "C:\\Data\\jdk-21.0.6+7",
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-21",
+      "path": "C:\\Data\\jdk-21.0.6+7",
+      "default": true
+    }
+  ],
+  "java.compile.nullAnalysis.mode": "disabled",
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "maven.executable.path": "C:\\Data\\apache-maven-3.9.9\\bin\\mvn",
+  "java.import.maven.enabled": true,
+  "java.import.gradle.enabled": false
+}
