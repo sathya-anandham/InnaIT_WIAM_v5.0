@@ -77,7 +77,7 @@ class UserRepositoryTest {
         createAndSaveUser("alice@innait.io", "Alice", "Wonder", "Alice Wonder", UserType.EMPLOYEE, UserStatus.ACTIVE, "Engineering");
         createAndSaveUser("bob@innait.io", "Bob", "Builder", "Bob Builder", UserType.CONTRACTOR, UserStatus.ACTIVE, "Operations");
 
-        Page<User> result = userRepository.search(tenantId, "Alice", null, null, null, PageRequest.of(0, 10));
+        Page<User> result = userRepository.search(tenantId, "%alice%", "%", null, null, PageRequest.of(0, 10));
 
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().get(0).getDisplayName()).isEqualTo("Alice Wonder");
@@ -89,7 +89,7 @@ class UserRepositoryTest {
         createAndSaveUser("inactive@innait.io", "Inactive", "User", "Inactive User", UserType.EMPLOYEE, UserStatus.INACTIVE, "Engineering");
         createAndSaveUser("other@innait.io", "Other", "Dept", "Other Dept", UserType.EMPLOYEE, UserStatus.ACTIVE, "HR");
 
-        Page<User> result = userRepository.search(tenantId, null, null, UserStatus.ACTIVE, "Engineering", PageRequest.of(0, 10));
+        Page<User> result = userRepository.search(tenantId, "%", "%", UserStatus.ACTIVE, "Engineering", PageRequest.of(0, 10));
 
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().get(0).getEmail()).isEqualTo("active@innait.io");
@@ -136,8 +136,8 @@ class UserRepositoryTest {
         deleted.softDelete();
         userRepository.save(deleted);
 
-        var candidates = userRepository.findByTenantIdAndDeletedAndDeletedAtBefore(
-                tenantId, true, java.time.Instant.now().plusSeconds(60));
+        var candidates = userRepository.findDeletedUsersForPurge(
+                tenantId, java.time.Instant.now().plusSeconds(60));
 
         assertThat(candidates).isNotEmpty();
         assertThat(candidates.get(0).getEmail()).isEqualTo("purge@innait.io");

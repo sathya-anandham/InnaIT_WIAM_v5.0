@@ -24,8 +24,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("""
             SELECT u FROM User u
             WHERE u.tenantId = :tenantId
-            AND (:displayName IS NULL OR LOWER(u.displayName) LIKE LOWER(CONCAT('%', :displayName, '%')))
-            AND (:email IS NULL OR LOWER(u.email) LIKE LOWER(CONCAT('%', :email, '%')))
+            AND LOWER(u.displayName) LIKE :displayName ESCAPE '!'
+            AND LOWER(u.email) LIKE :email ESCAPE '!'
             AND (:status IS NULL OR u.status = :status)
             AND (:department IS NULL OR u.department = :department)
             """)
@@ -39,6 +39,23 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     );
 
     List<User> findByTenantIdAndDeletedAndDeletedAtBefore(UUID tenantId, boolean deleted, Instant cutoffDate);
+
+    /**
+     * Bypasses @SQLRestriction to find a soft-deleted user by ID and tenant.
+     * Required for restore operations since @SQLRestriction("IS_DELETED = 0") prevents
+     * finding records with IS_DELETED = 1 via JPQL.
+     */
+    @Query(value = "SELECT * FROM USERS WHERE USER_ID = :userId AND TENANT_ID = :tenantId AND IS_DELETED = 1",
+            nativeQuery = true)
+    Optional<User> findDeletedByIdAndTenantId(@Param("userId") UUID userId, @Param("tenantId") UUID tenantId);
+
+    /**
+     * Bypasses @SQLRestriction to find all soft-deleted users for a tenant older than the cutoff date.
+     * Required for purge jobs since @SQLRestriction("IS_DELETED = 0") blocks derived queries on deleted records.
+     */
+    @Query(value = "SELECT * FROM USERS WHERE TENANT_ID = :tenantId AND IS_DELETED = 1 AND DELETED_AT < :cutoffDate",
+            nativeQuery = true)
+    List<User> findDeletedUsersForPurge(@Param("tenantId") UUID tenantId, @Param("cutoffDate") Instant cutoffDate);
 
     Page<User> findByTenantIdAndStatus(UUID tenantId, UserStatus status, Pageable pageable);
 

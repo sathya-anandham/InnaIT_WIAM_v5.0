@@ -6,6 +6,7 @@ import com.icegreen.greenmail.junit5.GreenMailExtension;
 import com.icegreen.greenmail.util.ServerSetupTest;
 import io.innait.wiam.common.context.TenantContext;
 import io.innait.wiam.common.event.EventEnvelope;
+import io.innait.wiam.common.exception.GlobalExceptionHandler;
 import io.innait.wiam.common.security.JwtAuthenticationFilter;
 import io.innait.wiam.notificationservice.dto.NotificationTemplateUpdateRequest;
 import io.innait.wiam.notificationservice.dto.TestNotificationRequest;
@@ -23,6 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -39,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
+@Import(GlobalExceptionHandler.class)
 class NotificationControllerIntegrationTest {
 
     @RegisterExtension
@@ -295,7 +298,7 @@ class NotificationControllerIntegrationTest {
             mockMvc.perform(post("/api/v1/notifications/test")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().is5xxServerError());
+                    .andExpect(status().isBadRequest());
         }
     }
 

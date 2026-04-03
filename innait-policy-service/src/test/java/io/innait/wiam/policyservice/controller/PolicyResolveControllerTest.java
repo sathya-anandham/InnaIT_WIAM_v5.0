@@ -159,7 +159,7 @@ class PolicyResolveControllerTest {
                     "ALLOW", false, 1,
                     matchedPolicyId, "Default Auth Policy", "true");
 
-            when(policyService.resolveAuthPolicy(eq(accountId), isNull(), isNull(), isNull()))
+            when(policyService.resolveAuthPolicy(eq(accountId), isNull(), isNull(), any()))
                     .thenReturn(result);
 
             mockMvc.perform(get(BASE_PATH + "/auth")
@@ -171,7 +171,7 @@ class PolicyResolveControllerTest {
                     .andExpect(jsonPath("$.data.requiredAuthLevel").value(1))
                     .andExpect(jsonPath("$.data.matchedPolicyId").value(matchedPolicyId.toString()));
 
-            verify(policyService).resolveAuthPolicy(eq(accountId), isNull(), isNull(), isNull());
+            verify(policyService).resolveAuthPolicy(eq(accountId), isNull(), isNull(), any());
         }
 
         @Test

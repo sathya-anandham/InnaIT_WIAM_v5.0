@@ -30,7 +30,7 @@ public class Connector extends BaseEntity {
     @Column(name = "LAST_SYNC_AT")
     private Instant lastSyncAt;
 
-    @Column(name = "LAST_SYNC_STATUS", length = 20)
+    @Column(name = "LAST_SYNC_STATUS", length = 255)
     private String lastSyncStatus;
 
     protected Connector() {}

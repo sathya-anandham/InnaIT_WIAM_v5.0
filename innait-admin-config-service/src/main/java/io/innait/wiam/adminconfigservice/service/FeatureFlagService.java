@@ -76,30 +76,23 @@ public class FeatureFlagService {
     @Transactional
     public FeatureFlagResponse setFlag(UUID tenantId, String flagKey, boolean value) {
         TenantContext.setTenantId(tenantId);
-        try {
-            FeatureFlag flag = repository.findByTenantIdAndFlagKey(tenantId, flagKey)
-                    .orElseGet(() -> {
-                        FeatureFlag newFlag = new FeatureFlag(flagKey, value, null);
-                        return newFlag;
-                    });
+        FeatureFlag flag = repository.findByTenantIdAndFlagKey(tenantId, flagKey)
+                .orElseGet(() -> new FeatureFlag(flagKey, value, null));
 
-            boolean oldValue = flag.isFlagValue();
-            flag.setFlagValue(value);
-            repository.save(flag);
+        boolean oldValue = flag.isFlagValue();
+        flag.setFlagValue(value);
+        repository.save(flag);
 
-            // Invalidate cache
-            invalidateCache(tenantId, flagKey);
+        // Invalidate cache
+        invalidateCache(tenantId, flagKey);
 
-            // Publish event
-            if (oldValue != value) {
-                publishFlagChangedEvent(tenantId, flagKey, oldValue, value);
-            }
-
-            log.info("Flag [{}] set to [{}] for tenant [{}]", flagKey, value, tenantId);
-            return toResponse(flag);
-        } finally {
-            TenantContext.clear();
+        // Publish event
+        if (oldValue != value) {
+            publishFlagChangedEvent(tenantId, flagKey, oldValue, value);
         }
+
+        log.info("Flag [{}] set to [{}] for tenant [{}]", flagKey, value, tenantId);
+        return toResponse(flag);
     }
 
     /**

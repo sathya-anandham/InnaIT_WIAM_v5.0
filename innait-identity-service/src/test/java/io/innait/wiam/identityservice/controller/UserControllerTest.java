@@ -2,6 +2,7 @@ package io.innait.wiam.identityservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.innait.wiam.common.constant.UserType;
+import io.innait.wiam.common.exception.GlobalExceptionHandler;
 import io.innait.wiam.common.exception.ResourceNotFoundException;
 import io.innait.wiam.identityservice.dto.*;
 import io.innait.wiam.identityservice.entity.UserStatus;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(GlobalExceptionHandler.class)
 @DisplayName("UserController WebMvc Tests")
 class UserControllerTest {
 

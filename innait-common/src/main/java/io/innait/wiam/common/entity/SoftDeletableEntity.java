@@ -13,7 +13,7 @@ import java.time.Instant;
 @Filter(name = "softDeleteFilter", condition = "IS_DELETED = :isDeleted")
 public abstract class SoftDeletableEntity extends AuditableEntity {
 
-    @Column(name = "IS_DELETED", nullable = false)
+    @Column(name = "IS_DELETED", columnDefinition = "NUMBER(1)", nullable = false)
     private boolean deleted = false;
 
     @Column(name = "DELETED_AT")

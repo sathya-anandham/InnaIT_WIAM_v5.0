@@ -6,6 +6,7 @@ import io.innait.wiam.adminconfigservice.entity.*;
 import io.innait.wiam.adminconfigservice.repository.*;
 import io.innait.wiam.adminconfigservice.service.ConfigEncryptionService;
 import io.innait.wiam.common.context.TenantContext;
+import io.innait.wiam.common.exception.GlobalExceptionHandler;
 import io.innait.wiam.common.kafka.EventPublisher;
 import io.innait.wiam.common.security.JwtAuthenticationFilter;
 import org.junit.jupiter.api.*;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -32,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
+@Import(GlobalExceptionHandler.class)
 class AdminConfigIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
@@ -112,7 +115,7 @@ class AdminConfigIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(
                                     new CreateTenantRequest("acme", "Acme 2", null, null, null))))
-                    .andExpect(status().is5xxServerError());
+                    .andExpect(status().isBadRequest());
         }
 
         @Test

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
+@Component("innaITGatewayProperties")
 @ConfigurationProperties(prefix = "innait.gateway")
 public class GatewayProperties {
 

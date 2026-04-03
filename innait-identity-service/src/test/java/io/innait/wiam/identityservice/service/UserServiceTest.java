@@ -237,7 +237,7 @@ class UserServiceTest {
     void shouldSearchUsers() {
         User user = createTestUser(UUID.randomUUID(), "alice@innait.io");
         Page<User> page = new PageImpl<>(List.of(user));
-        when(userRepository.search(eq(tenantId), eq("Alice"), isNull(), isNull(), isNull(), any()))
+        when(userRepository.search(eq(tenantId), eq("%alice%"), eq("%"), isNull(), isNull(), any()))
                 .thenReturn(page);
 
         UserSearchCriteria criteria = new UserSearchCriteria("Alice", null, null, null);
@@ -518,8 +518,8 @@ class UserServiceTest {
         UUID userId = UUID.randomUUID();
         User user = createTestUser(userId, "john@innait.io");
         user.softDelete();
-        when(userRepository.findByTenantIdAndDeletedAndDeletedAtBefore(eq(tenantId), eq(true), any()))
-                .thenReturn(List.of(user));
+        when(userRepository.findDeletedByIdAndTenantId(eq(userId), eq(tenantId)))
+                .thenReturn(Optional.of(user));
         when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         userService.restoreUser(userId);

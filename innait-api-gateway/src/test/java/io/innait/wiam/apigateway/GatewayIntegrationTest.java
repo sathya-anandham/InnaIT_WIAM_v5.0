@@ -15,8 +15,12 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import org.springframework.data.redis.core.ReactiveValueOperations;
+import reactor.core.publisher.Mono;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -65,8 +69,16 @@ class GatewayIntegrationTest {
     }
 
     @BeforeEach
+    @SuppressWarnings("unchecked")
     void setUp() {
         downstream.resetAll();
+
+        // Stub /actuator/health so DownstreamServiceHealthIndicator reports UP
+        downstream.stubFor(get(urlPathEqualTo("/actuator/health"))
+                .willReturn(aResponse().withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"status\":\"UP\"}")));
+
         // JWT filter passes all requests through (mocked out)
         when(jwtValidationFilter.filter(any(), any()))
                 .thenAnswer(inv -> {
@@ -74,6 +86,12 @@ class GatewayIntegrationTest {
                     return chain.filter(inv.getArgument(0));
                 });
         when(jwtValidationFilter.getOrder()).thenReturn(20);
+
+        // Mock Redis so RateLimitFilter succeeds (count=1, well within limit)
+        ReactiveValueOperations<String, String> valueOps = mock(ReactiveValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(valueOps);
+        when(valueOps.increment(any(String.class))).thenReturn(Mono.just(1L));
+        when(redisTemplate.expire(any(), any())).thenReturn(Mono.just(true));
     }
 
     @AfterAll

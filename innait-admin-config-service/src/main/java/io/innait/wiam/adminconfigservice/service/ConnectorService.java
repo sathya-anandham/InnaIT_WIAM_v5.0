@@ -36,17 +36,13 @@ public class ConnectorService {
     @Transactional
     public ConnectorResponse createConnector(UUID tenantId, CreateConnectorRequest request) {
         TenantContext.setTenantId(tenantId);
-        try {
-            String encrypted = encryptionService.encrypt(request.config());
-            Connector connector = new Connector(request.connectorName(),
-                    request.connectorType(), encrypted);
-            repository.save(connector);
-            log.info("Created connector [{}] type=[{}] for tenant [{}]",
-                    connector.getConnectorName(), request.connectorType(), tenantId);
-            return toResponse(connector);
-        } finally {
-            TenantContext.clear();
-        }
+        String encrypted = encryptionService.encrypt(request.config());
+        Connector connector = new Connector(request.connectorName(),
+                request.connectorType(), encrypted);
+        repository.save(connector);
+        log.info("Created connector [{}] type=[{}] for tenant [{}]",
+                connector.getConnectorName(), request.connectorType(), tenantId);
+        return toResponse(connector);
     }
 
     @Transactional
@@ -56,17 +52,13 @@ public class ConnectorService {
                 .orElseThrow(() -> new IllegalArgumentException("Connector not found: " + connectorId));
 
         TenantContext.setTenantId(tenantId);
-        try {
-            if (request.connectorName() != null) connector.setConnectorName(request.connectorName());
-            if (request.status() != null) connector.setStatus(request.status());
-            if (request.config() != null) {
-                connector.setEncryptedConfig(encryptionService.encrypt(request.config()));
-            }
-            repository.save(connector);
-            return toResponse(connector);
-        } finally {
-            TenantContext.clear();
+        if (request.connectorName() != null) connector.setConnectorName(request.connectorName());
+        if (request.status() != null) connector.setStatus(request.status());
+        if (request.config() != null) {
+            connector.setEncryptedConfig(encryptionService.encrypt(request.config()));
         }
+        repository.save(connector);
+        return toResponse(connector);
     }
 
     @Transactional(readOnly = true)

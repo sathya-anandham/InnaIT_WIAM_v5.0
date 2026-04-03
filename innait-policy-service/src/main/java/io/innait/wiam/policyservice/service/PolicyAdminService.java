@@ -51,6 +51,7 @@ public class PolicyAdminService {
         UUID tenantId = TenantContext.requireTenantId();
 
         PasswordPolicy policy = new PasswordPolicy();
+        policy.setPasswordPolicyId(UUID.randomUUID());
         policy.setTenantId(tenantId);
         policy.setPolicyName(request.policyName());
         policy.setMinLength(request.minLength());
@@ -126,6 +127,7 @@ public class PolicyAdminService {
         UUID tenantId = TenantContext.requireTenantId();
 
         MfaPolicy policy = new MfaPolicy();
+        policy.setMfaPolicyId(UUID.randomUUID());
         policy.setTenantId(tenantId);
         policy.setPolicyName(request.policyName());
         policy.setEnforcementMode(EnforcementMode.valueOf(request.enforcementMode()));
@@ -185,6 +187,7 @@ public class PolicyAdminService {
         UUID tenantId = TenantContext.requireTenantId();
 
         AuthPolicy policy = new AuthPolicy();
+        policy.setAuthPolicyId(UUID.randomUUID());
         policy.setTenantId(tenantId);
         policy.setPolicyName(request.policyName());
         policy.setDescription(request.description());
@@ -248,6 +251,7 @@ public class PolicyAdminService {
         UUID tenantId = TenantContext.requireTenantId();
 
         PolicyBinding binding = new PolicyBinding();
+        binding.setBindingId(UUID.randomUUID());
         binding.setTenantId(tenantId);
         binding.setPolicyType(PolicyType.valueOf(request.policyType()));
         binding.setPolicyId(request.policyId());

@@ -176,12 +176,14 @@ public class PolicyService {
         if (bindings == null || bindings.isEmpty()) return null;
 
         // Sort by target type priority (most specific first)
-        bindings.sort(Comparator.comparingInt(b -> {
+        // Defensive copy to avoid UnsupportedOperationException on immutable lists
+        List<PolicyBinding> sorted = new ArrayList<>(bindings);
+        sorted.sort(Comparator.comparingInt(b -> {
             int idx = PRIORITY_ORDER.indexOf(b.getTargetType());
             return idx >= 0 ? idx : Integer.MAX_VALUE;
         }));
 
-        return bindings.get(0).getPolicyId();
+        return sorted.get(0).getPolicyId();
     }
 
     private EvaluationContext buildEvaluationContext(UUID accountId, UUID tenantId, Map<String, Object> context) {

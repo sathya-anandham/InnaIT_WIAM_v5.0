@@ -1,10 +1,18 @@
 package io.innait.wiam.adminbff.controller;
 
 import io.innait.wiam.adminbff.client.*;
+import io.innait.wiam.common.kafka.EventPublisher;
 import io.innait.wiam.common.security.InnaITAuthenticationToken;
 import io.innait.wiam.common.security.JwtAuthenticationFilter;
+import io.innait.wiam.common.security.TenantSecurityFilter;
+import jakarta.persistence.EntityManager;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,7 +29,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
+import org.mockito.Answers;
+import org.springframework.data.redis.connection.RedisConnection;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
@@ -38,6 +51,10 @@ class AdminBffIntegrationTest {
     private MockMvc mockMvc;
 
     @MockBean private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @MockBean private TenantSecurityFilter tenantSecurityFilter;
+    @MockBean private EntityManager entityManager;
+    @MockBean private EventPublisher eventPublisher;
+    @MockBean private RedisConnectionFactory redisConnectionFactory;
     @MockBean private StringRedisTemplate stringRedisTemplate;
     @MockBean private IdentityServiceClient identityClient;
     @MockBean private SessionServiceClient sessionClient;
@@ -48,6 +65,24 @@ class AdminBffIntegrationTest {
     private static final UUID USER_ID = UUID.randomUUID();
     private static final UUID TENANT_ID = UUID.randomUUID();
     private static final UUID SESSION_ID = UUID.randomUUID();
+
+    @BeforeEach
+    void setUp() throws Exception {
+        doAnswer(inv -> {
+            FilterChain chain = inv.getArgument(2);
+            chain.doFilter(inv.getArgument(0), inv.getArgument(1));
+            return null;
+        }).when(jwtAuthenticationFilter).doFilter(any(ServletRequest.class), any(ServletResponse.class), any(FilterChain.class));
+        doAnswer(inv -> {
+            FilterChain chain = inv.getArgument(2);
+            chain.doFilter(inv.getArgument(0), inv.getArgument(1));
+            return null;
+        }).when(tenantSecurityFilter).doFilter(any(ServletRequest.class), any(ServletResponse.class), any(FilterChain.class));
+        RedisConnection mockConn = mock(RedisConnection.class, Answers.RETURNS_DEEP_STUBS);
+        when(mockConn.ping()).thenReturn("PONG");
+        when(mockConn.keyCommands().exists(any(byte[].class))).thenReturn(true); // hasKey() → true, prevents "Session was invalidated"
+        when(redisConnectionFactory.getConnection()).thenReturn(mockConn);
+    }
 
     private InnaITAuthenticationToken adminAuth() {
         return new InnaITAuthenticationToken(

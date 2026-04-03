@@ -21,6 +21,8 @@ public class GatewaySecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+                // Disable Spring Security's default security headers; ResponseHeaderFilter manages them.
+                .headers(ServerHttpSecurity.HeaderSpec::disable)
                 .authorizeExchange(exchanges -> exchanges.anyExchange().permitAll())
                 .build();
     }

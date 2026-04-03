@@ -41,7 +41,7 @@ class RateLimiterServiceTest {
     @Test
     void shouldAllowRequestWithinLimit() {
         UUID tenantId = UUID.randomUUID();
-        when(redisTemplate.execute(any(RedisScript.class), anyList(), any()))
+        when(redisTemplate.execute(any(RedisScript.class), anyList(), any(String.class), any(String.class)))
                 .thenReturn(3L);
 
         boolean allowed = rateLimiterService.isAllowed(tenantId, "192.168.1.1", 10, 60);
@@ -52,7 +52,7 @@ class RateLimiterServiceTest {
     @Test
     void shouldDenyRequestExceedingLimit() {
         UUID tenantId = UUID.randomUUID();
-        when(redisTemplate.execute(any(RedisScript.class), anyList(), any()))
+        when(redisTemplate.execute(any(RedisScript.class), anyList(), any(String.class), any(String.class)))
                 .thenReturn(11L);
 
         boolean allowed = rateLimiterService.isAllowed(tenantId, "10.0.0.1", 10, 60);
@@ -63,7 +63,7 @@ class RateLimiterServiceTest {
     @Test
     void shouldAllowRequestAtExactLimit() {
         UUID tenantId = UUID.randomUUID();
-        when(redisTemplate.execute(any(RedisScript.class), anyList(), any()))
+        when(redisTemplate.execute(any(RedisScript.class), anyList(), any(String.class), any(String.class)))
                 .thenReturn(10L);
 
         boolean allowed = rateLimiterService.isAllowed(tenantId, "192.168.1.1", 10, 60);
@@ -74,7 +74,7 @@ class RateLimiterServiceTest {
     @Test
     void shouldUseCorrectRedisKey() {
         UUID tenantId = UUID.randomUUID();
-        when(redisTemplate.execute(any(RedisScript.class), keysCaptor.capture(), any()))
+        when(redisTemplate.execute(any(RedisScript.class), keysCaptor.capture(), any(String.class), any(String.class)))
                 .thenReturn(1L);
 
         rateLimiterService.isAllowed(tenantId, "10.0.0.5", 100, 60);
@@ -110,7 +110,7 @@ class RateLimiterServiceTest {
     @Test
     void shouldHandleNullResponseFromScript() {
         UUID tenantId = UUID.randomUUID();
-        when(redisTemplate.execute(any(RedisScript.class), anyList(), any()))
+        when(redisTemplate.execute(any(RedisScript.class), anyList(), any(String.class), any(String.class)))
                 .thenReturn(null);
 
         boolean allowed = rateLimiterService.isAllowed(tenantId, "10.0.0.1", 10, 60);

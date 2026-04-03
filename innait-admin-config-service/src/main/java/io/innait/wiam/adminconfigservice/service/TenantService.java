@@ -125,14 +125,10 @@ public class TenantService {
         }
 
         TenantContext.setTenantId(tenantId);
-        try {
-            TenantDomain domain = new TenantDomain(request.domainName());
-            domainRepository.save(domain);
-            log.info("Added domain [{}] for tenant [{}]", request.domainName(), tenantId);
-            return toDomainResponse(domain);
-        } finally {
-            TenantContext.clear();
-        }
+        TenantDomain domain = new TenantDomain(request.domainName());
+        domainRepository.save(domain);
+        log.info("Added domain [{}] for tenant [{}]", request.domainName(), tenantId);
+        return toDomainResponse(domain);
     }
 
     @Transactional
@@ -193,14 +189,10 @@ public class TenantService {
     @Transactional
     public OrgUnitResponse createOrgUnit(UUID tenantId, CreateOrgUnitRequest request) {
         TenantContext.setTenantId(tenantId);
-        try {
-            OrgUnit orgUnit = new OrgUnit(request.orgCode(), request.orgName(),
-                    request.parentOrgUnitId(), request.description());
-            orgUnitRepository.save(orgUnit);
-            return toOrgUnitResponse(orgUnit);
-        } finally {
-            TenantContext.clear();
-        }
+        OrgUnit orgUnit = new OrgUnit(request.orgCode(), request.orgName(),
+                request.parentOrgUnitId(), request.description());
+        orgUnitRepository.save(orgUnit);
+        return toOrgUnitResponse(orgUnit);
     }
 
     @Transactional
@@ -209,15 +201,11 @@ public class TenantService {
                 .orElseThrow(() -> new IllegalArgumentException("OrgUnit not found: " + orgUnitId));
 
         TenantContext.setTenantId(tenantId);
-        try {
-            if (request.orgName() != null) orgUnit.setOrgName(request.orgName());
-            if (request.description() != null) orgUnit.setDescription(request.description());
-            if (request.parentOrgUnitId() != null) orgUnit.setParentOrgUnitId(request.parentOrgUnitId());
-            orgUnitRepository.save(orgUnit);
-            return toOrgUnitResponse(orgUnit);
-        } finally {
-            TenantContext.clear();
-        }
+        if (request.orgName() != null) orgUnit.setOrgName(request.orgName());
+        if (request.description() != null) orgUnit.setDescription(request.description());
+        if (request.parentOrgUnitId() != null) orgUnit.setParentOrgUnitId(request.parentOrgUnitId());
+        orgUnitRepository.save(orgUnit);
+        return toOrgUnitResponse(orgUnit);
     }
 
     @Transactional(readOnly = true)
@@ -243,19 +231,15 @@ public class TenantService {
 
     private void initializeFeatureFlags(UUID tenantId) {
         TenantContext.setTenantId(tenantId);
-        try {
-            for (String flagKey : DEFAULT_FLAG_KEYS) {
-                // Check if system-level default exists
-                boolean defaultValue = featureFlagRepository
-                        .findByTenantIdAndFlagKey(SYSTEM_TENANT_ID, flagKey)
-                        .map(FeatureFlag::isFlagValue)
-                        .orElse(false);
+        for (String flagKey : DEFAULT_FLAG_KEYS) {
+            // Check if system-level default exists
+            boolean defaultValue = featureFlagRepository
+                    .findByTenantIdAndFlagKey(SYSTEM_TENANT_ID, flagKey)
+                    .map(FeatureFlag::isFlagValue)
+                    .orElse(false);
 
-                FeatureFlag flag = new FeatureFlag(flagKey, defaultValue, "Cloned from template");
-                featureFlagRepository.save(flag);
-            }
-        } finally {
-            TenantContext.clear();
+            FeatureFlag flag = new FeatureFlag(flagKey, defaultValue, "Cloned from template");
+            featureFlagRepository.save(flag);
         }
     }
 

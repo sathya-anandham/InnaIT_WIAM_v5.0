@@ -149,10 +149,16 @@ public class UserService {
     @Transactional(readOnly = true)
     public Page<UserResponse> searchUsers(UserSearchCriteria criteria, Pageable pageable) {
         UUID tenantId = TenantContext.requireTenantId();
+        // Pre-compute LIKE patterns in Java to avoid CONCAT/ESCAPE SQL dialect issues in H2
+        // Always pass non-null patterns since JPQL has no IS NULL check for LIKE params
+        String displayNamePattern = criteria.displayName() != null
+                ? "%" + criteria.displayName().toLowerCase() + "%" : "%";
+        String emailPattern = criteria.email() != null
+                ? "%" + criteria.email().toLowerCase() + "%" : "%";
         Page<User> users = userRepository.search(
                 tenantId,
-                criteria.displayName(),
-                criteria.email(),
+                displayNamePattern,
+                emailPattern,
                 criteria.status(),
                 criteria.department(),
                 pageable
@@ -304,12 +310,8 @@ public class UserService {
 
     public void restoreUser(UUID userId) {
         UUID tenantId = TenantContext.requireTenantId();
-        // Use native query or direct find since soft-deleted users are filtered by @SQLRestriction
-        User user = userRepository.findByTenantIdAndDeletedAndDeletedAtBefore(
-                        tenantId, true, Instant.now().plusSeconds(1))
-                .stream()
-                .filter(u -> u.getId().equals(userId))
-                .findFirst()
+        // Use native query to bypass @SQLRestriction("IS_DELETED = 0") on User entity
+        User user = userRepository.findDeletedByIdAndTenantId(userId, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId.toString()));
 
         user.restore();

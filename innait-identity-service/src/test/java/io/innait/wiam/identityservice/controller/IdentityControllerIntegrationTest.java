@@ -5,6 +5,7 @@ import io.innait.wiam.common.constant.AccountStatus;
 import io.innait.wiam.common.constant.RoleType;
 import io.innait.wiam.common.constant.UserType;
 import io.innait.wiam.common.context.TenantContext;
+import io.innait.wiam.common.exception.GlobalExceptionHandler;
 import io.innait.wiam.common.kafka.EventPublisher;
 import io.innait.wiam.common.security.JwtAuthenticationFilter;
 import io.innait.wiam.identityservice.dto.*;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -31,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
+@Import(GlobalExceptionHandler.class)
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class IdentityControllerIntegrationTest {
@@ -175,7 +178,7 @@ class IdentityControllerIntegrationTest {
             mockMvc.perform(multipart("/api/v1/identity/users/bulk").file(file))
                     .andExpect(status().isAccepted())
                     .andExpect(jsonPath("$.data.jobId").isNotEmpty())
-                    .andExpect(jsonPath("$.data.operationType").value("BULK_CREATE"));
+                    .andExpect(jsonPath("$.data.operationType").value("BULK_CREATE_USERS"));
         }
 
         @Test
@@ -532,7 +535,7 @@ class IdentityControllerIntegrationTest {
             mockMvc.perform(get("/api/v1/identity/jobs/{jobId}", jobId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.jobId").value(jobId))
-                    .andExpect(jsonPath("$.data.operationType").value("BULK_CREATE"));
+                    .andExpect(jsonPath("$.data.operationType").value("BULK_CREATE_USERS"));
         }
     }
 

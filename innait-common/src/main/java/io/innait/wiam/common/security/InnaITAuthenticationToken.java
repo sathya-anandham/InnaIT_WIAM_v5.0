@@ -5,6 +5,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -80,15 +81,15 @@ public class InnaITAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     public List<String> getRoles() {
-        return roles;
+        return Collections.unmodifiableList(roles);
     }
 
     public List<String> getGroups() {
-        return groups;
+        return Collections.unmodifiableList(groups);
     }
 
     public List<String> getAmr() {
-        return amr;
+        return Collections.unmodifiableList(amr);
     }
 
     public String getAcr() {

@@ -155,7 +155,7 @@ class TokenControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status").value("SUCCESS"))
-                    .andExpect(jsonPath("$.data").isEmpty());
+                    .andExpect(jsonPath("$.data").doesNotExist());
 
             verify(tokenService).revokeToken(eq("eyJhbGciOiJSUzI1NiJ9.token-to-revoke"));
         }
@@ -170,7 +170,7 @@ class TokenControllerTest {
             mockMvc.perform(post(BASE_URL + "/rotate-keys"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status").value("SUCCESS"))
-                    .andExpect(jsonPath("$.data").isEmpty());
+                    .andExpect(jsonPath("$.data").doesNotExist());
 
             verify(tokenService).rotateKeys();
         }

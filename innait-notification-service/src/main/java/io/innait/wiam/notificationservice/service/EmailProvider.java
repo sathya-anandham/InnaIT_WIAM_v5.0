@@ -35,7 +35,7 @@ public class EmailProvider {
     public void send(String to, String subject, String body) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
             helper.setFrom(defaultFrom);
             helper.setTo(to);
             helper.setSubject(subject);

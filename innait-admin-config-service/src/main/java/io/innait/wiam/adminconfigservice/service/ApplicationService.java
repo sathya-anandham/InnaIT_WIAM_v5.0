@@ -26,19 +26,15 @@ public class ApplicationService {
     @Transactional
     public ApplicationResponse createApplication(UUID tenantId, CreateApplicationRequest request) {
         TenantContext.setTenantId(tenantId);
-        try {
-            if (repository.findByTenantIdAndAppCode(tenantId, request.appCode()).isPresent()) {
-                throw new IllegalArgumentException("App code already exists: " + request.appCode());
-            }
-
-            Application app = new Application(request.appCode(), request.appName(),
-                    request.appType(), request.appUrl(), request.description());
-            repository.save(app);
-            log.info("Created application [{}] for tenant [{}]", request.appCode(), tenantId);
-            return toResponse(app);
-        } finally {
-            TenantContext.clear();
+        if (repository.findByTenantIdAndAppCode(tenantId, request.appCode()).isPresent()) {
+            throw new IllegalArgumentException("App code already exists: " + request.appCode());
         }
+
+        Application app = new Application(request.appCode(), request.appName(),
+                request.appType(), request.appUrl(), request.description());
+        repository.save(app);
+        log.info("Created application [{}] for tenant [{}]", request.appCode(), tenantId);
+        return toResponse(app);
     }
 
     @Transactional
@@ -48,17 +44,13 @@ public class ApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Application not found: " + appId));
 
         TenantContext.setTenantId(tenantId);
-        try {
-            if (request.appName() != null) app.setAppName(request.appName());
-            if (request.appType() != null) app.setAppType(request.appType());
-            if (request.status() != null) app.setStatus(request.status());
-            if (request.appUrl() != null) app.setAppUrl(request.appUrl());
-            if (request.description() != null) app.setDescription(request.description());
-            repository.save(app);
-            return toResponse(app);
-        } finally {
-            TenantContext.clear();
-        }
+        if (request.appName() != null) app.setAppName(request.appName());
+        if (request.appType() != null) app.setAppType(request.appType());
+        if (request.status() != null) app.setStatus(request.status());
+        if (request.appUrl() != null) app.setAppUrl(request.appUrl());
+        if (request.description() != null) app.setDescription(request.description());
+        repository.save(app);
+        return toResponse(app);
     }
 
     @Transactional(readOnly = true)

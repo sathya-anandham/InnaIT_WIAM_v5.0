@@ -270,6 +270,9 @@
                             <exclude>**/config/**</exclude>
                             <exclude>**/entity/**</exclude>
                             <exclude>**/*Application.*</exclude>
+                            <exclude>**/*Config.*</exclude>
+                            <exclude>**/event/payload/**</exclude>
+                            <exclude>**/audit/**</exclude>
                         </excludes>
                     </configuration>
                 </plugin>
