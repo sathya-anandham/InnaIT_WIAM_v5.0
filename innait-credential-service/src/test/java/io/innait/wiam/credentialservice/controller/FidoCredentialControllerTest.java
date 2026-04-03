@@ -61,17 +61,18 @@ class FidoCredentialControllerTest {
 
         @Test
         void shouldCompleteRegistration() throws Exception {
-            // FidoCredentialResponse(UUID credentialId, String fidoCredentialId, String displayName,
-            //   String credentialStatus, boolean backupEligible, boolean backupState,
-            //   long signCount, Instant createdAt, Instant lastUsedAt)
             FidoCredentialResponse response = new FidoCredentialResponse(
                     CREDENTIAL_ID, "cred-id-base64", "Security Key",
                     "ACTIVE", false, false, 0L, Instant.now(), null);
             when(fidoService.completeRegistration(any())).thenReturn(response);
 
+            UUID txnId = UUID.randomUUID();
+            FidoRegistrationCompleteRequest request = new FidoRegistrationCompleteRequest(
+                    ACCOUNT_ID, txnId, "cred-id-base64", "attestObj64", "clientData64");
+
             mockMvc.perform(post("/api/v1/credentials/fido/register/complete")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"accountId\":\"" + ACCOUNT_ID + "\",\"attestationResponse\":{}}"))
+                            .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status").value("SUCCESS"))
                     .andExpect(jsonPath("$.data.credentialId").value(CREDENTIAL_ID.toString()));
@@ -105,9 +106,13 @@ class FidoCredentialControllerTest {
         void shouldCompleteAuthentication() throws Exception {
             when(fidoService.completeAuthentication(any())).thenReturn(true);
 
+            UUID txnId = UUID.randomUUID();
+            FidoAuthenticationCompleteRequest request = new FidoAuthenticationCompleteRequest(
+                    ACCOUNT_ID, txnId, "cred-id", "authData64", "clientData64", "sig64");
+
             mockMvc.perform(post("/api/v1/credentials/fido/authenticate/complete")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"accountId\":\"" + ACCOUNT_ID + "\",\"assertionResponse\":{}}"))
+                            .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.valid").value(true));
         }
@@ -116,9 +121,13 @@ class FidoCredentialControllerTest {
         void shouldReturnFalseForInvalidAssertion() throws Exception {
             when(fidoService.completeAuthentication(any())).thenReturn(false);
 
+            UUID txnId = UUID.randomUUID();
+            FidoAuthenticationCompleteRequest request = new FidoAuthenticationCompleteRequest(
+                    ACCOUNT_ID, txnId, "cred-id", "authData64", "clientData64", "sig64");
+
             mockMvc.perform(post("/api/v1/credentials/fido/authenticate/complete")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"accountId\":\"" + ACCOUNT_ID + "\",\"assertionResponse\":{}}"))
+                            .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.valid").value(false));
         }

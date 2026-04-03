@@ -69,7 +69,11 @@ class SessionServiceTest {
         void shouldCreateSessionSuccessfully() {
             when(sessionRepository.findByAccountIdAndSessionStatusOrderByLastActivityAtAsc(any(), eq(SessionStatus.ACTIVE)))
                     .thenReturn(List.of());
-            when(sessionRepository.save(any(Session.class))).thenAnswer(inv -> inv.getArgument(0));
+            when(sessionRepository.save(any(Session.class))).thenAnswer(inv -> {
+                Session s = inv.getArgument(0);
+                if (s.getSessionId() == null) s.setSessionId(UUID.randomUUID());
+                return s;
+            });
             when(sessionContextRepository.save(any(SessionContext.class))).thenAnswer(inv -> inv.getArgument(0));
             when(sessionEventRepository.save(any(SessionEvent.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -95,7 +99,11 @@ class SessionServiceTest {
         void shouldCreateSessionContext() {
             when(sessionRepository.findByAccountIdAndSessionStatusOrderByLastActivityAtAsc(any(), eq(SessionStatus.ACTIVE)))
                     .thenReturn(List.of());
-            when(sessionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(sessionRepository.save(any())).thenAnswer(inv -> {
+                Session s = inv.getArgument(0);
+                if (s.getSessionId() == null) s.setSessionId(UUID.randomUUID());
+                return s;
+            });
             when(sessionContextRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(sessionEventRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -117,7 +125,11 @@ class SessionServiceTest {
         void shouldDefaultToInteractiveSessionType() {
             when(sessionRepository.findByAccountIdAndSessionStatusOrderByLastActivityAtAsc(any(), eq(SessionStatus.ACTIVE)))
                     .thenReturn(List.of());
-            when(sessionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(sessionRepository.save(any())).thenAnswer(inv -> {
+                Session s = inv.getArgument(0);
+                if (s.getSessionId() == null) s.setSessionId(UUID.randomUUID());
+                return s;
+            });
             when(sessionContextRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(sessionEventRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -136,7 +148,11 @@ class SessionServiceTest {
         void shouldPublishSessionCreatedEvent() {
             when(sessionRepository.findByAccountIdAndSessionStatusOrderByLastActivityAtAsc(any(), eq(SessionStatus.ACTIVE)))
                     .thenReturn(List.of());
-            when(sessionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(sessionRepository.save(any())).thenAnswer(inv -> {
+                Session s = inv.getArgument(0);
+                if (s.getSessionId() == null) s.setSessionId(UUID.randomUUID());
+                return s;
+            });
             when(sessionContextRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(sessionEventRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -186,7 +202,11 @@ class SessionServiceTest {
 
             when(sessionRepository.findByAccountIdAndSessionStatusOrderByLastActivityAtAsc(any(), eq(SessionStatus.ACTIVE)))
                     .thenReturn(new ArrayList<>(List.of(oldest, middle)));
-            when(sessionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(sessionRepository.save(any())).thenAnswer(inv -> {
+                Session s = inv.getArgument(0);
+                if (s.getSessionId() == null) s.setSessionId(UUID.randomUUID());
+                return s;
+            });
             when(sessionContextRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(sessionEventRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -206,7 +226,11 @@ class SessionServiceTest {
 
             when(sessionRepository.findByAccountIdAndSessionStatusOrderByLastActivityAtAsc(any(), eq(SessionStatus.ACTIVE)))
                     .thenReturn(List.of(createMockSession(UUID.randomUUID(), Instant.now())));
-            when(sessionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(sessionRepository.save(any())).thenAnswer(inv -> {
+                Session s = inv.getArgument(0);
+                if (s.getSessionId() == null) s.setSessionId(UUID.randomUUID());
+                return s;
+            });
             when(sessionContextRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(sessionEventRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 

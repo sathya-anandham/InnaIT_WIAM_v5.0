@@ -64,7 +64,8 @@ class KekServiceTest {
 
         assertThatThrownBy(() -> kekService.encrypt(plaintext, iv, 99))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("KEK version 99 not available");
+                .hasMessageContaining("Failed to encrypt with KEK version 99")
+                .hasCauseInstanceOf(IllegalStateException.class);
     }
 
     @Test

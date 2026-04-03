@@ -206,8 +206,8 @@ class PasswordCredentialServiceTest {
             assertThat(cred.isActive()).isFalse();
             assertThat(cred.getCredentialStatus()).isEqualTo(CredentialStatus.EXPIRED);
 
-            // New credential saved (second save call)
-            verify(credentialRepository, times(3)).save(any(PasswordCredential.class));
+            // Old credential deactivated + new credential saved
+            verify(credentialRepository, times(2)).save(any(PasswordCredential.class));
         }
 
         @Test
@@ -236,7 +236,6 @@ class PasswordCredentialServiceTest {
             histEntry.setHashAlgorithm(HashAlgorithm.ARGON2ID);
             when(historyRepository.findTop10ByAccountIdOrderByCreatedAtDesc(accountId))
                     .thenReturn(List.of(histEntry));
-            when(credentialRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             assertThatThrownBy(() -> service.changePassword(accountId, "OldP@ss123", "ReusedP@ss1"))
                     .isInstanceOf(IllegalArgumentException.class)

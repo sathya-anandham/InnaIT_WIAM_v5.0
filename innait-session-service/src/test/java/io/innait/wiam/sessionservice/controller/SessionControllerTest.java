@@ -115,7 +115,7 @@ class SessionControllerTest {
                         .param("revokedBy", "admin"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(jsonPath("$.data").doesNotExist());
 
         verify(sessionService).revokeSession(eq(sessionId), eq("policy_violation"), eq("admin"));
     }
@@ -185,7 +185,7 @@ class SessionControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(jsonPath("$.data").doesNotExist());
 
         verify(sessionService).updateDeviceContext(eq(sessionId), any(DeviceContextUpdateRequest.class));
     }
