@@ -47,4 +47,10 @@ public class TenantController {
     public ResponseEntity<ApiResponse<Page<TenantResponse>>> listTenants(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(tenantService.listTenants(pageable)));
     }
+
+    @GetMapping("/resolve/{code}")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<ApiResponse<TenantResponse>> resolveTenantByCode(@PathVariable String code) {
+        return ResponseEntity.ok(ApiResponse.success(tenantService.getTenantByCode(code)));
+    }
 }

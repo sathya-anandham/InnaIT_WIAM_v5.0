@@ -48,7 +48,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/api/v1/auth/login/**",
-                                "/api/v1/self/credentials/password/forgot"
+                                "/api/v1/self/credentials/password/forgot",
+                                "/api/v1/admin/tenants/resolve/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

@@ -1,0 +1,522 @@
+version: "3.9"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# InnaIT WIAM 5.0 — Local Docker Compose
+#
+# Pre-requisite: build JARs first:
+#   JAVA_HOME="C:/Data/jdk-21.0.6+7" mvn clean package -DskipTests
+#
+# Then start everything:
+#   docker-compose up --build
+#
+# Login details after seed-admin completes:
+#   Login Portal   : http://localhost:4200  (enter "demo" as organization)
+#   Admin Console  : http://localhost:4400  (enter "demo" as organization)
+#   Username       : admin@demo.local
+#   Password       : Admin@12345
+# ──────────────────────────────────────────────────────────────────────────────
+
+x-java-common: &java-common
+  restart: unless-stopped
+  networks:
+    - wiam-net
+  environment:
+    ORACLE_URL:      "jdbc:oracle:thin:@innait-oracle-db:1521/FREEPDB1"
+    ORACLE_USER:     "wiam"
+    ORACLE_PASSWORD: "${ORACLE_WIAM_PASSWORD}"
+    REDIS_HOST:      "innait-redis"
+    REDIS_PORT:      "6379"
+    KAFKA_BOOTSTRAP: "innait-kafka:9092"
+    SPRING_PROFILES_ACTIVE: "prod"
+
+networks:
+  wiam-net:
+    driver: bridge
+
+volumes:
+  oracle-data:
+  redis-data:
+  kafka-data:
+  zookeeper-data:
+
+services:
+
+  # ── Infrastructure ──────────────────────────────────────────────────────────
+
+  innait-oracle-db:
+    image: gvenzl/oracle-free:23-slim
+    container_name: innait-oracle-db
+    restart: unless-stopped
+    networks:
+      - wiam-net
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD:      "${ORACLE_SYS_PASSWORD}"
+      ORACLE_WIAM_PASSWORD: "${ORACLE_WIAM_PASSWORD}"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      - ./docker/oracle:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "sqlplus -s sys/${ORACLE_SYS_PASSWORD}@//localhost:1521/FREEPDB1 AS SYSDBA <<< 'SELECT 1 FROM DUAL;' | grep -q 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 20
+      start_period: 120s
+
+  innait-redis:
+    image: redis:7-alpine
+    container_name: innait-redis
+    restart: unless-stopped
+    networks:
+      - wiam-net
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  innait-zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: innait-zookeeper
+    restart: unless-stopped
+    networks:
+      - wiam-net
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME:   2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 | grep imok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  innait-kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: innait-kafka
+    restart: unless-stopped
+    networks:
+      - wiam-net
+    depends_on:
+      innait-zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID:                        1
+      KAFKA_ZOOKEEPER_CONNECT:                "innait-zookeeper:2181"
+      KAFKA_ADVERTISED_LISTENERS:             "PLAINTEXT://innait-kafka:9092"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE:        "true"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # ── Spring Boot Services ────────────────────────────────────────────────────
+
+  innait-api-gateway:
+    <<: *java-common
+    build:
+      context: .
+      dockerfile: innait-api-gateway/Dockerfile
+    container_name: innait-api-gateway
+    depends_on:
+      innait-redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      ORACLE_URL:      ""   # gateway does not use Oracle
+      ORACLE_USER:     ""
+      ORACLE_PASSWORD: ""
+      REDIS_HOST:      "innait-redis"
+      REDIS_PORT:      "6379"
+      SPRING_PROFILES_ACTIVE: "prod"
+      AUTH_ORCHESTRATOR_URL:    "http://innait-auth-orchestrator:8083"
+      IDENTITY_SERVICE_URL:     "http://innait-identity-service:8081"
+      CREDENTIAL_SERVICE_URL:   "http://innait-credential-service:8082"
+      SESSION_SERVICE_URL:      "http://innait-session-service:8085"
+      TOKEN_SERVICE_URL:        "http://innait-token-service:8086"
+      POLICY_SERVICE_URL:       "http://innait-policy-service:8087"
+      AUDIT_SERVICE_URL:        "http://innait-audit-service:8088"
+      ADMIN_CONFIG_SERVICE_URL: "http://innait-admin-config-service:8090"
+      ADMIN_BFF_URL:            "http://innait-admin-bff:8092"
+      NOTIFICATION_SERVICE_URL: "http://innait-notification-service:8089"
+      DIRECTORY_CONNECTOR_URL:  "http://innait-directory-connector:8091"
+      JWKS_URL:                 "http://innait-token-service:8086/.well-known/jwks.json"
+      JWT_ISSUER:               "http://innait-token-service:8086"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  innait-token-service:
+    <<: *java-common
+    build:
+      context: .
+      dockerfile: innait-token-service/Dockerfile
+    container_name: innait-token-service
+    depends_on:
+      innait-redis:
+        condition: service_healthy
+    ports:
+      - "8086:8086"
+    environment:
+      ORACLE_URL:      ""
+      ORACLE_USER:     ""
+      ORACLE_PASSWORD: ""
+      REDIS_HOST:      "innait-redis"
+      SPRING_PROFILES_ACTIVE: "prod"
+      JWT_ISSUER:      "http://innait-token-service:8086"
+      JWT_SECRET:      "${JWT_SECRET}"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  innait-identity-service:
+    <<: *java-common
+    build:
+      context: .
+      dockerfile: innait-identity-service/Dockerfile
+    container_name: innait-identity-service
+    depends_on:
+      innait-oracle-db:
+        condition: service_healthy
+      innait-kafka:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      KAFKA_BOOTSTRAP:        "innait-kafka:9092"
+      JWKS_URL:               "http://innait-token-service:8086/.well-known/jwks.json"
+      JWT_ISSUER:             "http://innait-token-service:8086"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  innait-credential-service:
+    <<: *java-common
+    build:
+      context: .
+      dockerfile: innait-credential-service/Dockerfile
+    container_name: innait-credential-service
+    depends_on:
+      innait-oracle-db:
+        condition: service_healthy
+      innait-kafka:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    environment:
+      KAFKA_BOOTSTRAP:   "innait-kafka:9092"
+      JWKS_URL:          "http://innait-token-service:8086/.well-known/jwks.json"
+      JWT_ISSUER:        "http://innait-token-service:8086"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  innait-auth-orchestrator:
+    <<: *java-common
+    build:
+      context: .
+      dockerfile: innait-auth-orchestrator/Dockerfile
+    container_name: innait-auth-orchestrator
+    depends_on:
+      innait-oracle-db:
+        condition: service_healthy
+      innait-redis:
+        condition: service_healthy
+      innait-kafka:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+    environment:
+      KAFKA_BOOTSTRAP:   "innait-kafka:9092"
+      JWKS_URL:          "http://innait-token-service:8086/.well-known/jwks.json"
+      JWT_ISSUER:        "http://innait-token-service:8086"
+      # Disable MFA for local testing
+      INNAIT_AUTH_MFA_REQUIRED: "false"
+      IDENTITY_SERVICE_URL:     "http://innait-identity-service:8081"
+      CREDENTIAL_SERVICE_URL:   "http://innait-credential-service:8082"
+      TOKEN_SERVICE_URL:        "http://innait-token-service:8086"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  innait-mfa-service:
+    <<: *java-common
+    build:
+      context: .
+      dockerfile: innait-mfa-service/Dockerfile
+    container_name: innait-mfa-service
+    depends_on:
+      innait-redis:
+        condition: service_healthy
+    ports:
+      - "8084:8084"
+    environment:
+      ORACLE_URL:      ""
+      ORACLE_USER:     ""
+      ORACLE_PASSWORD: ""
+      JWKS_URL:        "http://innait-token-service:8086/.well-known/jwks.json"
+      JWT_ISSUER:      "http://innait-token-service:8086"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  innait-session-service:
+    <<: *java-common
+    build:
+      context: .
+      dockerfile: innait-session-service/Dockerfile
+    container_name: innait-session-service
+    depends_on:
+      innait-oracle-db:
+        condition: service_healthy
+      innait-redis:
+        condition: service_healthy
+    ports:
+      - "8085:8085"
+    environment:
+      JWKS_URL:   "http://innait-token-service:8086/.well-known/jwks.json"
+      JWT_ISSUER: "http://innait-token-service:8086"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  innait-policy-service:
+    <<: *java-common
+    build:
+      context: .
+      dockerfile: innait-policy-service/Dockerfile
+    container_name: innait-policy-service
+    depends_on:
+      innait-oracle-db:
+        condition: service_healthy
+      innait-kafka:
+        condition: service_healthy
+    ports:
+      - "8087:8087"
+    environment:
+      KAFKA_BOOTSTRAP: "innait-kafka:9092"
+      JWKS_URL:        "http://innait-token-service:8086/.well-known/jwks.json"
+      JWT_ISSUER:      "http://innait-token-service:8086"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8087/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  innait-audit-service:
+    <<: *java-common
+    build:
+      context: .
+      dockerfile: innait-audit-service/Dockerfile
+    container_name: innait-audit-service
+    depends_on:
+      innait-oracle-db:
+        condition: service_healthy
+      innait-kafka:
+        condition: service_healthy
+    ports:
+      - "8088:8088"
+    environment:
+      KAFKA_BOOTSTRAP: "innait-kafka:9092"
+      JWKS_URL:        "http://innait-token-service:8086/.well-known/jwks.json"
+      JWT_ISSUER:      "http://innait-token-service:8086"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8088/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  innait-notification-service:
+    <<: *java-common
+    build:
+      context: .
+      dockerfile: innait-notification-service/Dockerfile
+    container_name: innait-notification-service
+    depends_on:
+      innait-oracle-db:
+        condition: service_healthy
+      innait-kafka:
+        condition: service_healthy
+    ports:
+      - "8089:8089"
+    environment:
+      KAFKA_BOOTSTRAP:                     "innait-kafka:9092"
+      SPRING_JPA_HIBERNATE_DDL_AUTO:       "create"
+      JWKS_URL:                            "http://innait-token-service:8086/.well-known/jwks.json"
+      JWT_ISSUER:                          "http://innait-token-service:8086"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8089/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  innait-admin-config-service:
+    <<: *java-common
+    build:
+      context: .
+      dockerfile: innait-admin-config-service/Dockerfile
+    container_name: innait-admin-config-service
+    depends_on:
+      innait-oracle-db:
+        condition: service_healthy
+      innait-kafka:
+        condition: service_healthy
+    ports:
+      - "8090:8090"
+    environment:
+      KAFKA_BOOTSTRAP: "innait-kafka:9092"
+      JWKS_URL:        "http://innait-token-service:8086/.well-known/jwks.json"
+      JWT_ISSUER:      "http://innait-token-service:8086"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8090/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  innait-directory-connector:
+    <<: *java-common
+    build:
+      context: .
+      dockerfile: innait-directory-connector/Dockerfile
+    container_name: innait-directory-connector
+    depends_on:
+      innait-oracle-db:
+        condition: service_healthy
+    ports:
+      - "8091:8091"
+    environment:
+      ORACLE_URL:      ""
+      ORACLE_USER:     ""
+      ORACLE_PASSWORD: ""
+      JWKS_URL:        "http://innait-token-service:8086/.well-known/jwks.json"
+      JWT_ISSUER:      "http://innait-token-service:8086"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8091/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  innait-admin-bff:
+    <<: *java-common
+    build:
+      context: .
+      dockerfile: innait-admin-bff/Dockerfile
+    container_name: innait-admin-bff
+    depends_on:
+      innait-redis:
+        condition: service_healthy
+    ports:
+      - "8092:8092"
+    environment:
+      ORACLE_URL:      ""
+      ORACLE_USER:     ""
+      ORACLE_PASSWORD: ""
+      REDIS_HOST:      "innait-redis"
+      JWKS_URL:        "http://innait-token-service:8086/.well-known/jwks.json"
+      JWT_ISSUER:      "http://innait-token-service:8086"
+      IDENTITY_SERVICE_URL:     "http://innait-identity-service:8081"
+      CREDENTIAL_SERVICE_URL:   "http://innait-credential-service:8082"
+      ADMIN_CONFIG_SERVICE_URL: "http://innait-admin-config-service:8090"
+      POLICY_SERVICE_URL:       "http://innait-policy-service:8087"
+      AUDIT_SERVICE_URL:        "http://innait-audit-service:8088"
+      SESSION_SERVICE_URL:      "http://innait-session-service:8085"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8092/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # ── Seed Container ──────────────────────────────────────────────────────────
+  # Runs once to insert demo tenant + admin user + password. Exits on completion.
+
+  innait-seed-admin:
+    build:
+      context: ./docker/seed
+      dockerfile: Dockerfile
+    container_name: innait-seed-admin
+    networks:
+      - wiam-net
+    depends_on:
+      innait-oracle-db:
+        condition: service_healthy
+      innait-identity-service:
+        condition: service_healthy
+      innait-credential-service:
+        condition: service_healthy
+      innait-admin-config-service:
+        condition: service_healthy
+    environment:
+      ORACLE_HOST:          "innait-oracle-db"
+      ORACLE_PORT:          "1521"
+      ORACLE_SERVICE:       "FREEPDB1"
+      ORACLE_WIAM_USER:     "wiam"
+      ORACLE_WIAM_PASSWORD: "${ORACLE_WIAM_PASSWORD}"
+      SEED_TENANT_CODE:     "demo"
+      SEED_TENANT_NAME:     "Demo Organization"
+      SEED_ADMIN_EMAIL:     "admin@demo.local"
+      SEED_ADMIN_PASSWORD:  "${SEED_ADMIN_PASSWORD}"
+    restart: "no"
+
+  # ── Angular UI (nginx) ──────────────────────────────────────────────────────
+
+  innait-ui:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    container_name: innait-ui
+    restart: unless-stopped
+    networks:
+      - wiam-net
+    depends_on:
+      innait-api-gateway:
+        condition: service_healthy
+    ports:
+      - "4200:4200"
+      - "4300:4300"
+      - "4400:4400"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4200/ > /dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s

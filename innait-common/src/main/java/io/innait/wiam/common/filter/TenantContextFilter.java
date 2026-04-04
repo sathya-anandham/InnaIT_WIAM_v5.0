@@ -28,7 +28,11 @@ public class TenantContextFilter extends OncePerRequestFilter {
         try {
             String tenantHeader = request.getHeader(TENANT_HEADER);
             if (tenantHeader != null && !tenantHeader.isBlank()) {
-                TenantContext.setTenantId(UUID.fromString(tenantHeader));
+                try {
+                    TenantContext.setTenantId(UUID.fromString(tenantHeader));
+                } catch (IllegalArgumentException ignored) {
+                    // Header value is not a valid UUID (e.g. a tenant code); skip header-based resolution
+                }
             } else {
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                 if (auth != null && auth.getDetails() instanceof TenantAware tenantAware) {

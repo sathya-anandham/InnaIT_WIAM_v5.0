@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { catchError, of } from 'rxjs';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { TenantService } from '@innait/core';
@@ -56,7 +58,8 @@ export class TenantInputComponent implements OnInit {
   constructor(
     private readonly fb: FormBuilder,
     private readonly router: Router,
-    private readonly tenantService: TenantService
+    private readonly tenantService: TenantService,
+    private readonly http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -93,8 +96,17 @@ export class TenantInputComponent implements OnInit {
       return;
     }
 
-    this.tenantService.setTenantId(tenantCode);
-    this.router.navigate(['/login']);
-    this.loading = false;
+    // Resolve tenant code → UUID via public API
+    this.http.get<{ data: { tenantId: string } }>(`/api/v1/admin/tenants/resolve/${tenantCode}`).pipe(
+      catchError(() => of(null))
+    ).subscribe(resp => {
+      if (resp?.data?.tenantId) {
+        this.tenantService.setTenantId(resp.data.tenantId);
+        this.router.navigate(['/login']);
+      } else {
+        this.errorMessage = 'Organization not found. Please check and try again.';
+        this.loading = false;
+      }
+    });
   }
 }

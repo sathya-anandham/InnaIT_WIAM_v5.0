@@ -121,3 +121,4 @@ innait:
       - /actuator/health
       - /swagger-ui/**
       - /v3/api-docs/**
+      - /api/v1/admin/tenants/resolve/**

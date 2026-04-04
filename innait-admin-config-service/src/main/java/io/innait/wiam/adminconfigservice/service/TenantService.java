@@ -113,6 +113,13 @@ public class TenantService {
         return tenantRepository.findAll(pageable).map(this::toResponse);
     }
 
+    @Transactional(readOnly = true)
+    public TenantResponse getTenantByCode(String tenantCode) {
+        Tenant tenant = tenantRepository.findByTenantCode(tenantCode)
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found for code: " + tenantCode));
+        return toResponse(tenant);
+    }
+
     // ---- Domain Management ----
 
     @Transactional
