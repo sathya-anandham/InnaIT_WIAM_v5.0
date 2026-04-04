@@ -796,8 +796,8 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     if (pasted.length === 6) {
       const inputs = this.otpInputs.toArray();
       for (let i = 0; i < 6; i++) {
-        this.digits[i] = pasted[i];
-        if (inputs[i]) inputs[i].nativeElement.value = pasted[i];
+        this.digits[i] = pasted[i]!;
+        if (inputs[i]) inputs[i]!.nativeElement.value = pasted[i]!;
       }
     }
   }

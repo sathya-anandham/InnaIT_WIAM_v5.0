@@ -205,7 +205,6 @@ const PAGE_SIZE = 25;
             [columnDefs]="columnDefs"
             [gridOptions]="gridOptions"
             [rowModelType]="'serverSide'"
-            [serverSideStoreType]="'partial'"
             [pagination]="true"
             [paginationPageSize]="pageSize"
             [cacheBlockSize]="pageSize"

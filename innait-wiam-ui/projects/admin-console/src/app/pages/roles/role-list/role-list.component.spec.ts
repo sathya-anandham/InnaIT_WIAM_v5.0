@@ -102,7 +102,7 @@ describe('RoleListComponent', () => {
 
   it('should apply filters and refresh grid', () => {
     // Set up a mock gridApi
-    const mockGridApi = jasmine.createSpyObj('GridApi', ['setServerSideDatasource', 'getSelectedRows']);
+    const mockGridApi = jasmine.createSpyObj('GridApi', ['setGridOption', 'getSelectedRows']);
     (component as any).gridApi = mockGridApi;
 
     // Toggle filter values
@@ -114,7 +114,7 @@ describe('RoleListComponent', () => {
 
     // Apply filters should refresh the grid
     component.applyFilters();
-    expect(mockGridApi.setServerSideDatasource).toHaveBeenCalled();
+    expect(mockGridApi.setGridOption).toHaveBeenCalled();
 
     // Clear filters should reset and refresh
     component.clearFilters();

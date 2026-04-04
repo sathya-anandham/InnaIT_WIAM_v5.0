@@ -1244,7 +1244,7 @@ Integration tests:
 ### PROMPT 20 – Comprehensive Backend Unit Test Suite
 
 ```
-Create a comprehensive unit test suite covering all backend services with minimum 80% code coverage.
+Create a comprehensive unit test suite covering all backend services with minimum 80% code coverage. 
 
 1. Test infrastructure:
    - TestSecurityConfig: mock JWT authentication for @WebMvcTest

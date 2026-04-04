@@ -7,44 +7,86 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 export interface ThemeConfig {
   primaryColor: string;
   primaryLight: string;
+  primaryDark: string;
   accentColor: string;
   bgColor: string;
   surfaceColor: string;
   textColor: string;
   textSecondary: string;
+  borderColor: string;
   successColor: string;
   warningColor: string;
   dangerColor: string;
+  infoColor: string;
   sidebarWidth: string;
+  sidebarBg: string;
+  sidebarText: string;
+  sidebarHover: string;
+  sidebarActiveBg: string;
+  sidebarActiveText: string;
+  sidebarSection: string;
+  topbarBg: string;
+  topbarBorder: string;
+  topbarHeight: string;
+  cardShadow: string;
+  cardRadius: string;
   loginBackground?: string;
 }
 
 const LIGHT_DEFAULTS: ThemeConfig = {
-  primaryColor: '#1976d2',
-  primaryLight: '#42a5f5',
-  accentColor: '#ff6f00',
-  bgColor: '#f5f5f5',
+  primaryColor: '#3751FF',
+  primaryLight: '#5B73FF',
+  primaryDark: '#2A3FC7',
+  accentColor: '#00B884',
+  bgColor: '#F0F1F7',
   surfaceColor: '#ffffff',
-  textColor: '#212121',
-  textSecondary: '#757575',
-  successColor: '#4caf50',
-  warningColor: '#ff9800',
-  dangerColor: '#f44336',
-  sidebarWidth: '260px',
+  textColor: '#252733',
+  textSecondary: '#9FA2B4',
+  borderColor: '#DFE0EB',
+  successColor: '#29CC97',
+  warningColor: '#FEC400',
+  dangerColor: '#F12B2C',
+  infoColor: '#3751FF',
+  sidebarWidth: '270px',
+  sidebarBg: '#262731',
+  sidebarText: '#A4A6B3',
+  sidebarHover: '#2C2D3A',
+  sidebarActiveBg: 'rgba(55, 81, 255, 0.12)',
+  sidebarActiveText: '#DDE2FF',
+  sidebarSection: '#6B6D7B',
+  topbarBg: '#ffffff',
+  topbarBorder: '#DFE0EB',
+  topbarHeight: '64px',
+  cardShadow: '0 2px 10px rgba(0, 0, 0, 0.06)',
+  cardRadius: '12px',
 };
 
 const DARK_DEFAULTS: ThemeConfig = {
-  primaryColor: '#64b5f6',
-  primaryLight: '#90caf9',
-  accentColor: '#ffab40',
-  bgColor: '#121212',
-  surfaceColor: '#1e1e1e',
-  textColor: '#e0e0e0',
-  textSecondary: '#9e9e9e',
-  successColor: '#66bb6a',
-  warningColor: '#ffa726',
-  dangerColor: '#ef5350',
-  sidebarWidth: '260px',
+  primaryColor: '#5B73FF',
+  primaryLight: '#7B8FFF',
+  primaryDark: '#3751FF',
+  accentColor: '#34D9A3',
+  bgColor: '#1A1B25',
+  surfaceColor: '#21222D',
+  textColor: '#E0E0E6',
+  textSecondary: '#9FA2B4',
+  borderColor: '#33343F',
+  successColor: '#34D9A3',
+  warningColor: '#FFD43B',
+  dangerColor: '#FF6B6B',
+  infoColor: '#5B73FF',
+  sidebarWidth: '270px',
+  sidebarBg: '#16171F',
+  sidebarText: '#A4A6B3',
+  sidebarHover: '#1E1F2A',
+  sidebarActiveBg: 'rgba(91, 115, 255, 0.15)',
+  sidebarActiveText: '#B3C0FF',
+  sidebarSection: '#6B6D7B',
+  topbarBg: '#21222D',
+  topbarBorder: '#33343F',
+  topbarHeight: '64px',
+  cardShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
+  cardRadius: '12px',
 };
 
 const STORAGE_KEY = 'innait-theme-mode';
@@ -111,7 +153,8 @@ export class ThemingService implements OnDestroy {
     this.tenantOverrides = {};
     if (branding.primaryColor) {
       this.tenantOverrides.primaryColor = branding.primaryColor;
-      this.tenantOverrides.primaryLight = this.lightenColor(branding.primaryColor, 30);
+      this.tenantOverrides.primaryLight = this.lightenColor(branding.primaryColor, 20);
+      this.tenantOverrides.primaryDark = this.darkenColor(branding.primaryColor, 15);
     }
     if (branding.accentColor) {
       this.tenantOverrides.accentColor = branding.accentColor;
@@ -134,24 +177,46 @@ export class ThemingService implements OnDestroy {
     const config: ThemeConfig = { ...base, ...this.tenantOverrides };
 
     const root = document.documentElement;
+
+    // Core colors
     root.style.setProperty('--innait-primary', config.primaryColor);
     root.style.setProperty('--innait-primary-light', config.primaryLight);
+    root.style.setProperty('--innait-primary-dark', config.primaryDark);
     root.style.setProperty('--innait-accent', config.accentColor);
     root.style.setProperty('--innait-bg', config.bgColor);
     root.style.setProperty('--innait-surface', config.surfaceColor);
     root.style.setProperty('--innait-text', config.textColor);
     root.style.setProperty('--innait-text-secondary', config.textSecondary);
+    root.style.setProperty('--innait-border', config.borderColor);
     root.style.setProperty('--innait-success', config.successColor);
     root.style.setProperty('--innait-warning', config.warningColor);
     root.style.setProperty('--innait-danger', config.dangerColor);
+    root.style.setProperty('--innait-info', config.infoColor);
+
+    // Sidebar
     root.style.setProperty('--innait-sidebar-width', config.sidebarWidth);
+    root.style.setProperty('--innait-sidebar-bg', config.sidebarBg);
+    root.style.setProperty('--innait-sidebar-text', config.sidebarText);
+    root.style.setProperty('--innait-sidebar-hover', config.sidebarHover);
+    root.style.setProperty('--innait-sidebar-active-bg', config.sidebarActiveBg);
+    root.style.setProperty('--innait-sidebar-active-text', config.sidebarActiveText);
+    root.style.setProperty('--innait-sidebar-section', config.sidebarSection);
+
+    // Topbar
+    root.style.setProperty('--innait-topbar-bg', config.topbarBg);
+    root.style.setProperty('--innait-topbar-border', config.topbarBorder);
+    root.style.setProperty('--innait-topbar-height', config.topbarHeight);
+
+    // Card
+    root.style.setProperty('--innait-card-shadow', config.cardShadow);
+    root.style.setProperty('--innait-card-radius', config.cardRadius);
 
     // PrimeNG theme variable overrides
     root.style.setProperty('--primary-color', config.primaryColor);
-    root.style.setProperty('--primary-color-text', effectiveDark ? '#121212' : '#ffffff');
+    root.style.setProperty('--primary-color-text', '#ffffff');
     root.style.setProperty('--surface-ground', config.bgColor);
     root.style.setProperty('--surface-card', config.surfaceColor);
-    root.style.setProperty('--surface-border', effectiveDark ? '#333333' : '#dee2e6');
+    root.style.setProperty('--surface-border', config.borderColor);
     root.style.setProperty('--text-color', config.textColor);
     root.style.setProperty('--text-color-secondary', config.textSecondary);
 
@@ -188,6 +253,14 @@ export class ThemingService implements OnDestroy {
     const r = Math.min(255, ((num >> 16) & 0xff) + Math.round(255 * percent / 100));
     const g = Math.min(255, ((num >> 8) & 0xff) + Math.round(255 * percent / 100));
     const b = Math.min(255, (num & 0xff) + Math.round(255 * percent / 100));
+    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+  }
+
+  private darkenColor(hex: string, percent: number): string {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.max(0, ((num >> 16) & 0xff) - Math.round(255 * percent / 100));
+    const g = Math.max(0, ((num >> 8) & 0xff) - Math.round(255 * percent / 100));
+    const b = Math.max(0, (num & 0xff) - Math.round(255 * percent / 100));
     return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
   }
 }

@@ -7,6 +7,7 @@ import {
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
+  FormsModule,
   FormBuilder,
   FormGroup,
   Validators,
@@ -114,6 +115,7 @@ interface UserCreateResponse {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     RouterLink,
     StepsModule,
     ButtonModule,
@@ -568,7 +570,7 @@ interface UserCreateResponse {
                       optionLabel="label"
                       optionValue="value"
                       [style]="{ width: '130px' }"
-                      aria-label="Assignment source for role {{ role.name }}"
+                      [attr.aria-label]="'Assignment source for role ' + role.name"
                     ></p-dropdown>
                   </div>
                   <button
@@ -628,7 +630,7 @@ interface UserCreateResponse {
                       optionLabel="label"
                       optionValue="value"
                       [style]="{ width: '130px' }"
-                      aria-label="Assignment source for group {{ group.name }}"
+                      [attr.aria-label]="'Assignment source for group ' + group.name"
                     ></p-dropdown>
                   </div>
                   <button
@@ -933,7 +935,6 @@ interface UserCreateResponse {
         header="Discard Changes?"
         [(visible)]="showCancelDialog"
         [modal]="true"
-        [closable]="true"
         [style]="{ width: '420px' }"
         aria-label="Cancel confirmation dialog"
       >
@@ -1894,7 +1895,7 @@ export class UserCreateComponent implements OnInit, OnDestroy {
   removeRole(index: number): void {
     const removed = this.assignedRoles.splice(index, 1);
     if (removed.length > 0) {
-      this.selectedRoleIds = this.selectedRoleIds.filter((id) => id !== removed[0].id);
+      this.selectedRoleIds = this.selectedRoleIds.filter((id) => id !== removed[0]!.id);
     }
   }
 
@@ -1919,7 +1920,7 @@ export class UserCreateComponent implements OnInit, OnDestroy {
   removeGroup(index: number): void {
     const removed = this.assignedGroups.splice(index, 1);
     if (removed.length > 0) {
-      this.selectedGroupIds = this.selectedGroupIds.filter((id) => id !== removed[0].id);
+      this.selectedGroupIds = this.selectedGroupIds.filter((id) => id !== removed[0]!.id);
     }
   }
 
@@ -1949,7 +1950,7 @@ export class UserCreateComponent implements OnInit, OnDestroy {
       { score: 4, label: 'Very Strong', color: '#16a34a', percent: 100 },
     ];
 
-    return levels[score];
+    return levels[score]!;
   }
 
   /* ------------------------------------------------------------------ */

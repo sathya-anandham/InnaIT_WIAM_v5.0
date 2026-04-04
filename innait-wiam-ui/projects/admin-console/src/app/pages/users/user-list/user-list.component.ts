@@ -20,6 +20,7 @@ import {
   RowClickedEvent,
   SelectionChangedEvent,
   GridOptions,
+  CellClickedEvent,
 } from 'ag-grid-community';
 import { AuthService, ApiResponse, PaginationMeta, User } from '@innait/core';
 import { TranslatePipe } from '@innait/i18n';
@@ -301,7 +302,6 @@ interface RoleOption {
               [columnDefs]="columnDefs"
               [defaultColDef]="defaultColDef"
               [rowModelType]="'serverSide'"
-              [serverSideStoreType]="'partial'"
               [pagination]="true"
               [paginationPageSize]="pageSize"
               [cacheBlockSize]="pageSize"
@@ -1111,7 +1111,7 @@ export class UserListComponent implements OnInit, OnDestroy {
         if (!params.data) return '';
         return `<a class="action-link" data-action="view" data-user-id="${params.data.id}">View Details</a>`;
       },
-      onCellClicked: (params: { data: AdminUserRow; event: Event }) => {
+      onCellClicked: (params: CellClickedEvent) => {
         const target = params.event?.target as HTMLElement;
         if (target?.getAttribute('data-action') === 'view' && params.data) {
           this.router.navigate(['/users', params.data.id]);
@@ -1223,7 +1223,7 @@ export class UserListComponent implements OnInit, OnDestroy {
   // ================================================================
   onGridReady(event: GridReadyEvent): void {
     this.gridApi = event.api;
-    this.gridApi.setServerSideDatasource(this.createDatasource());
+    this.gridApi.setGridOption('serverSideDatasource', this.createDatasource());
   }
 
   onSelectionChanged(_event: SelectionChangedEvent): void {
@@ -1262,8 +1262,8 @@ export class UserListComponent implements OnInit, OnDestroy {
         // Sorting
         const sortModel = params.request.sortModel;
         if (sortModel && sortModel.length > 0) {
-          const sortCol = sortModel[0].colId;
-          const sortDir = sortModel[0].sort;
+          const sortCol = sortModel[0]!.colId;
+          const sortDir = sortModel[0]!.sort;
           httpParams = httpParams.set('sort', `${sortCol},${sortDir}`);
         }
 
@@ -1346,7 +1346,7 @@ export class UserListComponent implements OnInit, OnDestroy {
 
   refreshGrid(): void {
     if (this.gridApi) {
-      this.gridApi.purgeServerSideCache();
+      (this.gridApi as any).purgeServerSideCache?.();
     }
   }
 

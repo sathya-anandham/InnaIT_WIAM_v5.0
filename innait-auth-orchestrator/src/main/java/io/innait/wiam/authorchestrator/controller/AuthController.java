@@ -58,4 +58,52 @@ public class AuthController {
         AuthInitiateResponse response = authService.initiateStepUp(request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    // ---- Magic Link Bootstrap Flow ----
+
+    @PostMapping("/login/magic-link/send")
+    public ResponseEntity<ApiResponse<MagicLinkSendResponse>> sendMagicLink(
+            @Valid @RequestBody MagicLinkSendRequest request) {
+        MagicLinkSendResponse response = authService.sendMagicLink(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/login/magic-link/verify")
+    public ResponseEntity<ApiResponse<MagicLinkVerifyResponse>> verifyMagicLink(
+            @RequestParam String token) {
+        MagicLinkVerifyResponse response = authService.verifyMagicLink(token);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // ---- Bootstrap Session ----
+
+    @PostMapping("/bootstrap/session/validate")
+    public ResponseEntity<ApiResponse<BootstrapSessionResponse>> validateBootstrapSession(
+            @Valid @RequestBody BootstrapSessionValidateRequest request) {
+        BootstrapSessionResponse response = authService.validateBootstrapSession(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/bootstrap/session/expire")
+    public ResponseEntity<ApiResponse<BootstrapSessionResponse>> expireBootstrapSession(
+            @Valid @RequestBody BootstrapSessionValidateRequest request) {
+        BootstrapSessionResponse response = authService.expireBootstrapSession(request.sessionId());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // ---- Bootstrap FIDO Enrollment ----
+
+    @PostMapping("/bootstrap/{txnId}/fido-enrollment/start")
+    public ResponseEntity<ApiResponse<AuthStatusResponse>> startFidoEnrollment(
+            @PathVariable UUID txnId) {
+        AuthStatusResponse response = authService.startFidoEnrollment(txnId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/bootstrap/{txnId}/fido-enrollment/complete")
+    public ResponseEntity<ApiResponse<AuthStatusResponse>> completeFidoEnrollment(
+            @PathVariable UUID txnId) {
+        AuthStatusResponse response = authService.completeFidoEnrollment(txnId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 }

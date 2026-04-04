@@ -20,6 +20,7 @@ import {
   RowClickedEvent,
   SelectionChangedEvent,
   GridOptions,
+  CellClickedEvent,
 } from 'ag-grid-community';
 import { AuthService, ApiResponse, PaginationMeta, Group } from '@innait/core';
 import { TranslatePipe } from '@innait/i18n';
@@ -187,7 +188,6 @@ interface GroupTypeOption {
               [columnDefs]="columnDefs"
               [defaultColDef]="defaultColDef"
               [rowModelType]="'serverSide'"
-              [serverSideStoreType]="'partial'"
               [pagination]="true"
               [paginationPageSize]="pageSize"
               [cacheBlockSize]="pageSize"
@@ -819,7 +819,7 @@ export class GroupListComponent implements OnInit, OnDestroy {
         if (!params.data) return '';
         return `<a class="action-link" data-action="view" data-group-id="${params.data.id}">View Details</a>`;
       },
-      onCellClicked: (params: { data: GroupRow; event: Event }) => {
+      onCellClicked: (params: CellClickedEvent) => {
         const target = params.event?.target as HTMLElement;
         if (target?.getAttribute('data-action') === 'view' && params.data) {
           this.router.navigate(['/groups', params.data.id]);
@@ -899,7 +899,7 @@ export class GroupListComponent implements OnInit, OnDestroy {
   // ================================================================
   onGridReady(event: GridReadyEvent): void {
     this.gridApi = event.api;
-    this.gridApi.setServerSideDatasource(this.createDatasource());
+    this.gridApi.setGridOption('serverSideDatasource', this.createDatasource());
   }
 
   onRowClicked(event: RowClickedEvent): void {
@@ -926,7 +926,7 @@ export class GroupListComponent implements OnInit, OnDestroy {
 
         const sortModel = params.request.sortModel;
         if (sortModel && sortModel.length > 0) {
-          httpParams = httpParams.set('sort', `${sortModel[0].colId},${sortModel[0].sort}`);
+          httpParams = httpParams.set('sort', `${sortModel[0]!.colId},${sortModel[0]!.sort}`);
         }
 
         if (this.filters.search) {
@@ -986,7 +986,7 @@ export class GroupListComponent implements OnInit, OnDestroy {
 
   refreshGrid(): void {
     if (this.gridApi) {
-      this.gridApi.setServerSideDatasource(this.createDatasource());
+      this.gridApi.setGridOption('serverSideDatasource', this.createDatasource());
     }
   }
 

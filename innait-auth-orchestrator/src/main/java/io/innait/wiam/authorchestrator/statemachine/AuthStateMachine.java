@@ -26,13 +26,14 @@ public class AuthStateMachine {
                 AuthEvent.TIMEOUT, AuthState.ABORTED
         ));
 
-        // PRIMARY_CHALLENGE → PRIMARY_VERIFIED or FAILED
-        TRANSITIONS.put(AuthState.PRIMARY_CHALLENGE, Map.of(
-                AuthEvent.PRIMARY_FACTOR_VERIFIED, AuthState.PRIMARY_VERIFIED,
-                AuthEvent.PRIMARY_FACTOR_FAILED, AuthState.FAILED,
-                AuthEvent.AUTH_ABORTED, AuthState.ABORTED,
-                AuthEvent.TIMEOUT, AuthState.ABORTED
-        ));
+        // PRIMARY_CHALLENGE → PRIMARY_VERIFIED or MAGIC_LINK_SENT or FAILED
+        Map<AuthEvent, AuthState> primaryChallengeTransitions = new EnumMap<>(AuthEvent.class);
+        primaryChallengeTransitions.put(AuthEvent.PRIMARY_FACTOR_VERIFIED, AuthState.PRIMARY_VERIFIED);
+        primaryChallengeTransitions.put(AuthEvent.PRIMARY_FACTOR_FAILED, AuthState.FAILED);
+        primaryChallengeTransitions.put(AuthEvent.MAGIC_LINK_SENT, AuthState.MAGIC_LINK_SENT);
+        primaryChallengeTransitions.put(AuthEvent.AUTH_ABORTED, AuthState.ABORTED);
+        primaryChallengeTransitions.put(AuthEvent.TIMEOUT, AuthState.ABORTED);
+        TRANSITIONS.put(AuthState.PRIMARY_CHALLENGE, primaryChallengeTransitions);
 
         // PRIMARY_VERIFIED → MFA_CHALLENGE or COMPLETED
         TRANSITIONS.put(AuthState.PRIMARY_VERIFIED, Map.of(
@@ -53,6 +54,34 @@ public class AuthStateMachine {
         // MFA_VERIFIED → COMPLETED
         TRANSITIONS.put(AuthState.MFA_VERIFIED, Map.of(
                 AuthEvent.AUTH_COMPLETED, AuthState.COMPLETED,
+                AuthEvent.AUTH_ABORTED, AuthState.ABORTED,
+                AuthEvent.TIMEOUT, AuthState.ABORTED
+        ));
+
+        // Bootstrap / Magic Link flow
+        // INITIATED → MAGIC_LINK_SENT (when magic link is the primary method)
+        // Note: INITIATED already transitions to PRIMARY_CHALLENGE; magic link
+        // is sent from PRIMARY_CHALLENGE state as an alternative factor path.
+
+        // MAGIC_LINK_SENT → ONBOARDING_REQUIRED (on verification) or FAILED
+        TRANSITIONS.put(AuthState.MAGIC_LINK_SENT, Map.of(
+                AuthEvent.MAGIC_LINK_VERIFIED, AuthState.ONBOARDING_REQUIRED,
+                AuthEvent.PRIMARY_FACTOR_FAILED, AuthState.FAILED,
+                AuthEvent.AUTH_ABORTED, AuthState.ABORTED,
+                AuthEvent.TIMEOUT, AuthState.ABORTED
+        ));
+
+        // ONBOARDING_REQUIRED → FIDO_ENROLLMENT_IN_PROGRESS
+        TRANSITIONS.put(AuthState.ONBOARDING_REQUIRED, Map.of(
+                AuthEvent.FIDO_ENROLLMENT_STARTED, AuthState.FIDO_ENROLLMENT_IN_PROGRESS,
+                AuthEvent.AUTH_ABORTED, AuthState.ABORTED,
+                AuthEvent.TIMEOUT, AuthState.ABORTED
+        ));
+
+        // FIDO_ENROLLMENT_IN_PROGRESS → COMPLETED
+        TRANSITIONS.put(AuthState.FIDO_ENROLLMENT_IN_PROGRESS, Map.of(
+                AuthEvent.FIDO_ENROLLMENT_COMPLETED, AuthState.COMPLETED,
+                AuthEvent.PRIMARY_FACTOR_FAILED, AuthState.FAILED,
                 AuthEvent.AUTH_ABORTED, AuthState.ABORTED,
                 AuthEvent.TIMEOUT, AuthState.ABORTED
         ));

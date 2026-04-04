@@ -61,12 +61,6 @@ interface UserDetail extends User {
 
 interface AccountDetail extends Account {
   accountId?: string;
-  loginId?: string;
-  accountStatus?: string;
-  failedAttemptCount?: number;
-  mustChangePassword?: boolean;
-  lastLoginAt?: string;
-  passwordExpiresAt?: string;
 }
 
 interface HistoryEntry {
@@ -253,7 +247,6 @@ interface GroupOption {
       <p-tabView
         [activeIndex]="activeTabIndex"
         (activeIndexChange)="onTabChange($event)"
-        [lazy]="true"
         styleClass="user-tabs"
       >
         <!-- ====== TAB 1: Profile ====== -->
@@ -488,7 +481,7 @@ interface GroupOption {
                     aria-label="Suspend user account"
                   ></button>
                   <button
-                    *ngIf="user.account.accountStatus === 'SUSPENDED'"
+                    *ngIf="$any(user.account.accountStatus) === 'SUSPENDED'"
                     pButton
                     type="button"
                     label="Activate"
@@ -1004,7 +997,6 @@ interface GroupOption {
         header="Confirm Action"
         [(visible)]="showAccountActionDialog"
         [modal]="true"
-        [closable]="true"
         [style]="{ width: '420px' }"
         aria-label="Confirm account action dialog"
       >
@@ -1033,7 +1025,6 @@ interface GroupOption {
         header="Assign Role"
         [(visible)]="showAssignRoleDialog"
         [modal]="true"
-        [closable]="true"
         [style]="{ width: '500px' }"
         aria-label="Assign role dialog"
       >
@@ -1103,7 +1094,6 @@ interface GroupOption {
         header="Remove Role"
         [(visible)]="showRemoveRoleDialog"
         [modal]="true"
-        [closable]="true"
         [style]="{ width: '450px' }"
         aria-label="Remove role confirmation dialog"
       >
@@ -1147,7 +1137,6 @@ interface GroupOption {
         header="Add to Group"
         [(visible)]="showAddGroupDialog"
         [modal]="true"
-        [closable]="true"
         [style]="{ width: '450px' }"
         aria-label="Add to group dialog"
       >
@@ -1193,7 +1182,6 @@ interface GroupOption {
         header="Remove from Group"
         [(visible)]="showRemoveGroupDialog"
         [modal]="true"
-        [closable]="true"
         [style]="{ width: '420px' }"
         aria-label="Remove from group confirmation dialog"
       >
@@ -1225,7 +1213,6 @@ interface GroupOption {
         header="Force Logout All Sessions"
         [(visible)]="showRevokeAllSessionsDialog"
         [modal]="true"
-        [closable]="true"
         [style]="{ width: '420px' }"
         aria-label="Force logout all sessions confirmation"
       >

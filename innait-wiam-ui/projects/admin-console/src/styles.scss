@@ -3,48 +3,96 @@
 @import 'ag-grid-community/styles/ag-theme-alpine.css';
 
 :root {
-  --innait-primary: #1976d2;
-  --innait-primary-light: #42a5f5;
-  --innait-accent: #ff6f00;
-  --innait-bg: #f5f5f5;
+  // Saviynt-inspired enterprise color palette
+  --innait-primary: #3751FF;
+  --innait-primary-light: #5B73FF;
+  --innait-primary-dark: #2A3FC7;
+  --innait-accent: #00B884;
+  --innait-bg: #F0F1F7;
   --innait-surface: #ffffff;
-  --innait-text: #212121;
-  --innait-text-secondary: #757575;
-  --innait-sidebar-width: 260px;
-  --innait-success: #4caf50;
-  --innait-warning: #ff9800;
-  --innait-danger: #f44336;
+  --innait-text: #252733;
+  --innait-text-secondary: #9FA2B4;
+  --innait-border: #DFE0EB;
+  --innait-success: #29CC97;
+  --innait-warning: #FEC400;
+  --innait-danger: #F12B2C;
+  --innait-info: #3751FF;
+
+  // Sidebar (dark charcoal - Saviynt signature)
+  --innait-sidebar-width: 270px;
+  --innait-sidebar-bg: #262731;
+  --innait-sidebar-text: #A4A6B3;
+  --innait-sidebar-hover: #2C2D3A;
+  --innait-sidebar-active-bg: rgba(55, 81, 255, 0.12);
+  --innait-sidebar-active-text: #DDE2FF;
+  --innait-sidebar-section: #6B6D7B;
+
+  // Topbar
+  --innait-topbar-height: 64px;
+  --innait-topbar-bg: #ffffff;
+  --innait-topbar-border: #DFE0EB;
+
+  // Card
+  --innait-card-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  --innait-card-radius: 12px;
+
+  // PrimeNG overrides
+  --primary-color: #3751FF;
+  --primary-color-text: #ffffff;
+  --surface-ground: #F0F1F7;
+  --surface-card: #ffffff;
+  --surface-border: #DFE0EB;
+  --text-color: #252733;
+  --text-color-secondary: #9FA2B4;
 }
 
-// Dark mode overrides (applied via ThemingService body class)
+// Dark mode overrides
 body.innait-dark {
-  --innait-primary: #64b5f6;
-  --innait-primary-light: #90caf9;
-  --innait-accent: #ffab40;
-  --innait-bg: #121212;
-  --innait-surface: #1e1e1e;
-  --innait-text: #e0e0e0;
-  --innait-text-secondary: #9e9e9e;
-  --innait-success: #66bb6a;
-  --innait-warning: #ffa726;
-  --innait-danger: #ef5350;
+  --innait-primary: #5B73FF;
+  --innait-primary-light: #7B8FFF;
+  --innait-primary-dark: #3751FF;
+  --innait-accent: #34D9A3;
+  --innait-bg: #1A1B25;
+  --innait-surface: #21222D;
+  --innait-text: #E0E0E6;
+  --innait-text-secondary: #9FA2B4;
+  --innait-border: #33343F;
+  --innait-success: #34D9A3;
+  --innait-warning: #FFD43B;
+  --innait-danger: #FF6B6B;
+  --innait-info: #5B73FF;
 
-  --primary-color: #64b5f6;
-  --surface-ground: #121212;
-  --surface-card: #1e1e1e;
-  --surface-border: #333333;
-  --text-color: #e0e0e0;
-  --text-color-secondary: #9e9e9e;
+  --innait-sidebar-bg: #16171F;
+  --innait-sidebar-text: #A4A6B3;
+  --innait-sidebar-hover: #1E1F2A;
+  --innait-sidebar-active-bg: rgba(91, 115, 255, 0.15);
+  --innait-sidebar-active-text: #B3C0FF;
+  --innait-sidebar-section: #6B6D7B;
+
+  --innait-topbar-bg: #21222D;
+  --innait-topbar-border: #33343F;
+
+  --innait-card-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+
+  --primary-color: #5B73FF;
+  --primary-color-text: #ffffff;
+  --surface-ground: #1A1B25;
+  --surface-card: #21222D;
+  --surface-border: #33343F;
+  --text-color: #E0E0E6;
+  --text-color-secondary: #9FA2B4;
 }
 
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: 'Roboto', 'Segoe UI', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background-color: var(--innait-bg);
   color: var(--innait-text);
   transition: background-color 0.2s ease, color 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 // Accessibility: high contrast mode support
@@ -77,27 +125,72 @@ html, body {
   html { font-size: 16px; }
 }
 
-// ag-Grid theme overrides
+// ag-Grid theme overrides (Saviynt-style clean table)
 .ag-theme-alpine {
-  --ag-header-background-color: var(--innait-surface);
-  --ag-border-color: #e0e0e0;
-  --ag-row-hover-color: rgba(25, 118, 210, 0.04);
-  --ag-selected-row-background-color: rgba(25, 118, 210, 0.08);
-  --ag-font-family: 'Roboto', 'Segoe UI', sans-serif;
-  --ag-font-size: 0.875rem;
+  --ag-header-background-color: #F7F8FC;
+  --ag-border-color: var(--innait-border);
+  --ag-row-hover-color: rgba(55, 81, 255, 0.04);
+  --ag-selected-row-background-color: rgba(55, 81, 255, 0.08);
+  --ag-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ag-font-size: 0.8125rem;
+  --ag-header-foreground-color: var(--innait-text-secondary);
+  --ag-header-column-separator-display: none;
 }
 
 body.innait-dark .ag-theme-alpine {
   --ag-background-color: var(--innait-surface);
-  --ag-header-background-color: #252525;
-  --ag-border-color: #333333;
-  --ag-row-hover-color: rgba(100, 181, 246, 0.08);
-  --ag-selected-row-background-color: rgba(100, 181, 246, 0.12);
+  --ag-header-background-color: #2A2B36;
+  --ag-border-color: var(--innait-border);
+  --ag-row-hover-color: rgba(91, 115, 255, 0.08);
+  --ag-selected-row-background-color: rgba(91, 115, 255, 0.12);
   --ag-foreground-color: var(--innait-text);
   --ag-secondary-foreground-color: var(--innait-text-secondary);
 }
 
-// Scrollbar styling
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--innait-bg); }
-::-webkit-scrollbar-thumb { background: var(--innait-text-secondary); border-radius: 3px; }
+// PrimeNG global overrides
+.p-button {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  font-family: 'Inter', sans-serif !important;
+  letter-spacing: 0.01em;
+}
+.p-inputtext {
+  border-radius: 8px !important;
+  border-color: var(--innait-border) !important;
+  font-family: 'Inter', sans-serif !important;
+}
+.p-inputtext:focus {
+  border-color: var(--innait-primary) !important;
+  box-shadow: 0 0 0 2px rgba(55, 81, 255, 0.15) !important;
+}
+.p-card {
+  border-radius: var(--innait-card-radius) !important;
+  box-shadow: var(--innait-card-shadow) !important;
+  border: 1px solid var(--innait-border);
+}
+.p-datatable .p-datatable-thead > tr > th {
+  background: #F7F8FC !important;
+  color: var(--innait-text-secondary) !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-color: var(--innait-border) !important;
+}
+.p-datatable .p-datatable-tbody > tr {
+  transition: background-color 0.15s ease;
+}
+.p-datatable .p-datatable-tbody > tr:hover {
+  background: rgba(55, 81, 255, 0.03) !important;
+}
+.p-tag {
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  font-size: 0.75rem !important;
+}
+
+// Scrollbar styling (enterprise thin)
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #C4C6D0; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--innait-text-secondary); }

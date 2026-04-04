@@ -64,4 +64,21 @@ public class FidoCredentialController {
         List<FidoCredentialResponse> credentials = fidoService.listCredentials(accountId);
         return ResponseEntity.ok(ApiResponse.success(credentials));
     }
+
+    // ---- Device-Aware Registration (Bootstrap / Onboarding Flow) ----
+
+    @PostMapping("/register/device-aware/begin")
+    public ResponseEntity<ApiResponse<FidoRegistrationBeginResponse>> beginDeviceAwareRegistration(
+            @Valid @RequestBody DeviceAwareFidoRegistrationBeginRequest request) {
+        FidoRegistrationBeginResponse response = fidoService.beginDeviceAwareRegistration(
+                request.accountId(), request.deviceId(), request.displayName());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/register/device-aware/complete")
+    public ResponseEntity<ApiResponse<FidoCredentialResponse>> completeDeviceAwareRegistration(
+            @Valid @RequestBody DeviceAwareFidoRegistrationCompleteRequest request) {
+        FidoCredentialResponse response = fidoService.completeDeviceAwareRegistration(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 }

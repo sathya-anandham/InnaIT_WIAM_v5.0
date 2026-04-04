@@ -115,7 +115,7 @@ interface ConnectorTypeOption {
               </div>
             </div>
             <div class="status-dot" [class]="'status-dot--' + conn.status.toLowerCase()"
-                 [pTooltip]="conn.status" aria-label="Status: {{ conn.status }}">
+                 [pTooltip]="conn.status" [attr.aria-label]="'Status: ' + conn.status">
             </div>
           </div>
           <div class="connector-card-body">
@@ -161,7 +161,6 @@ interface ConnectorTypeOption {
               [(visible)]="showWizard"
               [modal]="true"
               [style]="{ width: '720px', minHeight: '520px' }"
-              [closable]="true"
               (onHide)="onWizardClose()"
               aria-label="Connector wizard">
 
@@ -376,9 +375,9 @@ interface ConnectorTypeOption {
             </div>
             <p class="test-result-message">{{ testResult.message }}</p>
             <div *ngIf="testResult.details?.usersFound !== undefined" class="test-result-details">
-              <span>{{ 'settings.connectors.usersFound' | translate }}: {{ testResult.details.usersFound }}</span>
-              <span *ngIf="testResult.details.groupsFound !== undefined">
-                | {{ 'settings.connectors.groupsFound' | translate }}: {{ testResult.details.groupsFound }}
+              <span>{{ 'settings.connectors.usersFound' | translate }}: {{ testResult.details!.usersFound }}</span>
+              <span *ngIf="testResult.details!.groupsFound !== undefined">
+                | {{ 'settings.connectors.groupsFound' | translate }}: {{ testResult.details!.groupsFound }}
               </span>
             </div>
           </div>

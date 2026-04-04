@@ -108,7 +108,6 @@ interface StatusOption {
           *ngIf="errorMessage && !loading"
           severity="error"
           [text]="errorMessage"
-          [closable]="true"
           (onClose)="errorMessage = ''"
           role="alert">
         </p-message>
@@ -251,7 +250,6 @@ interface StatusOption {
           *ngIf="successMessage"
           severity="success"
           [text]="successMessage"
-          [closable]="true"
           (onClose)="successMessage = ''"
           role="alert">
         </p-message>
@@ -470,9 +468,9 @@ export class MyAccessRequestsComponent implements OnInit, OnDestroy {
       });
   }
 
-  onPageChange(event: { page: number; rows: number; first: number }): void {
-    this.currentPage = event.page;
-    this.pageSize = event.rows;
+  onPageChange(event: { page?: number; rows?: number; first?: number }): void {
+    this.currentPage = event.page ?? 0;
+    this.pageSize = event.rows ?? 20;
     this.loadRequests();
   }
 
@@ -501,7 +499,7 @@ export class MyAccessRequestsComponent implements OnInit, OnDestroy {
       });
   }
 
-  getStatusSeverity(status: RequestStatus): string {
+  getStatusSeverity(status: RequestStatus): 'success' | 'info' | 'secondary' | 'contrast' | 'warning' | 'danger' {
     switch (status) {
       case 'PENDING':
         return 'warning';
@@ -517,7 +515,7 @@ export class MyAccessRequestsComponent implements OnInit, OnDestroy {
     }
   }
 
-  getTypeSeverity(type: string): string {
+  getTypeSeverity(type: string): 'success' | 'info' | 'secondary' | 'contrast' | 'warning' | 'danger' {
     switch (type) {
       case 'ROLE':
         return 'info';

@@ -67,7 +67,6 @@ interface SecurityQuestionOption {
         *ngIf="errorMessage && !loading"
         severity="error"
         [text]="errorMessage"
-        [closable]="true"
         (onClose)="errorMessage = ''"
         role="alert">
       </p-message>
@@ -87,7 +86,6 @@ interface SecurityQuestionOption {
         *ngIf="successMessage && !loading"
         severity="success"
         [text]="successMessage"
-        [closable]="true"
         (onClose)="successMessage = ''"
         role="alert">
       </p-message>
@@ -258,7 +256,6 @@ interface SecurityQuestionOption {
       <p-dialog
         [(visible)]="showEmailDialog"
         [modal]="true"
-        [closable]="true"
         [style]="{ width: '420px' }"
         [header]="'recovery.email.dialog.title' | translate"
         (onHide)="resetEmailForm()"
@@ -346,7 +343,6 @@ interface SecurityQuestionOption {
       <p-dialog
         [(visible)]="showPhoneDialog"
         [modal]="true"
-        [closable]="true"
         [style]="{ width: '420px' }"
         [header]="'recovery.phone.dialog.title' | translate"
         (onHide)="resetPhoneForm()"
@@ -434,7 +430,6 @@ interface SecurityQuestionOption {
       <p-dialog
         [(visible)]="showSecurityQuestionsDialog"
         [modal]="true"
-        [closable]="true"
         [style]="{ width: '560px' }"
         [header]="'recovery.securityQuestions.dialog.title' | translate"
         (onHide)="resetSecurityQuestionsForm()"

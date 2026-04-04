@@ -172,7 +172,6 @@ interface DnsRecord {
               [(visible)]="showAddDialog"
               [modal]="true"
               [style]="{ width: '480px' }"
-              [closable]="true"
               aria-label="Add domain dialog">
       <form [formGroup]="addDomainForm" (ngSubmit)="onAddDomain()">
         <div class="field">
@@ -206,7 +205,6 @@ interface DnsRecord {
               [(visible)]="showDnsDialog"
               [modal]="true"
               [style]="{ width: '600px' }"
-              [closable]="true"
               aria-label="DNS instructions dialog">
       <div *ngIf="dnsRecord" class="dns-instructions">
         <p class="dns-intro">
@@ -493,7 +491,7 @@ export class DomainManagementComponent implements OnInit, OnDestroy {
       });
   }
 
-  getStatusSeverity(status: string): string {
+  getStatusSeverity(status: string): 'success' | 'info' | 'warning' | 'danger' {
     switch (status) {
       case 'VERIFIED': return 'success';
       case 'PENDING': return 'warning';

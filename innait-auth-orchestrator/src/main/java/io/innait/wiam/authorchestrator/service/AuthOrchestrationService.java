@@ -88,8 +88,8 @@ public class AuthOrchestrationService {
 
         ChannelType channelType = parseChannelType(request.channelType());
 
-        // Determine available primary methods (from policy; defaulting here)
-        List<String> primaryMethods = determinePrimaryMethods();
+        // Determine available primary methods — check bootstrap eligibility first
+        List<String> primaryMethods = determinePrimaryMethods(request.loginId(), tenantId);
 
         // Create AUTH_TRANSACTIONS record
         AuthTransaction txn = new AuthTransaction();
@@ -113,6 +113,7 @@ public class AuthOrchestrationService {
         session.setMaxPrimaryAttempts(defaultMaxPrimaryAttempts);
         session.setMaxMfaAttempts(defaultMaxMfaAttempts);
         session.setAvailablePrimaryMethods(primaryMethods);
+        session.setBootstrapFlow(primaryMethods.contains("MAGIC_LINK"));
         session.setStartedAt(now);
         session.setExpiresAt(expiresAt);
         saveSession(session);
@@ -223,6 +224,166 @@ public class AuthOrchestrationService {
                 session.getAuthMethodsUsed(), "User aborted", null);
 
         log.info("Auth aborted: txnId={}", txnId);
+        return new AuthStatusResponse(txnId, newState.name(), session.getStartedAt(),
+                session.getExpiresAt(), Instant.now());
+    }
+
+    // ---- Magic Link Bootstrap Flow ----
+
+    @Transactional
+    public MagicLinkSendResponse sendMagicLink(MagicLinkSendRequest request) {
+        AuthSessionData session = loadSession(request.txnId());
+        validateNotExpired(session);
+
+        if (session.getCurrentState() != AuthState.PRIMARY_CHALLENGE) {
+            throw new IllegalStateException("Cannot send magic link in state: " + session.getCurrentState());
+        }
+
+        // Transition: PRIMARY_CHALLENGE → MAGIC_LINK_SENT
+        AuthState newState = stateMachine.transition(session.getCurrentState(), AuthEvent.MAGIC_LINK_SENT);
+        session.setCurrentState(newState);
+        session.setAccountId(request.accountId());
+        session.setBootstrapFlow(true);
+        saveSession(session);
+
+        updateTransactionState(session.getTxnId(), newState, null);
+
+        // Delegate to credential-service to generate and send the magic link.
+        // In production: REST call to credential-service MagicLinkBootstrapService.
+        Instant magicLinkExpiresAt = Instant.now().plus(5, ChronoUnit.MINUTES);
+
+        publishAuthEvent(InnaITTopics.MAGIC_LINK_SENT, "auth.magic_link.sent",
+                session.getTxnId(), session.getTenantId(),
+                Map.of("accountId", request.accountId().toString(),
+                        "email", request.email() != null ? request.email() : ""));
+
+        log.info("Magic link sent: txnId={}, accountId={}", session.getTxnId(), request.accountId());
+        return new MagicLinkSendResponse(session.getTxnId(), newState.name(), magicLinkExpiresAt);
+    }
+
+    @Transactional
+    public MagicLinkVerifyResponse verifyMagicLink(String token) {
+        // Delegate to credential-service to verify the magic link token.
+        // In production: REST call to credential-service MagicLinkBootstrapService.verifyMagicLink(token).
+        UUID txnId = extractTxnIdFromToken(token);
+        AuthSessionData session = loadSession(txnId);
+        validateNotExpired(session);
+
+        if (session.getCurrentState() != AuthState.MAGIC_LINK_SENT) {
+            throw new IllegalStateException("Cannot verify magic link in state: " + session.getCurrentState());
+        }
+
+        // Transition: MAGIC_LINK_SENT → ONBOARDING_REQUIRED
+        AuthState newState = stateMachine.transition(session.getCurrentState(), AuthEvent.MAGIC_LINK_VERIFIED);
+        session.setCurrentState(newState);
+
+        // Create restricted bootstrap session
+        UUID bootstrapSessionId = UUID.randomUUID();
+        session.setBootstrapSessionId(bootstrapSessionId);
+        saveSession(session);
+
+        updateTransactionState(session.getTxnId(), newState, null);
+
+        // Store bootstrap session in Redis with limited TTL
+        storeBootstrapSession(bootstrapSessionId, session);
+
+        publishAuthEvent(InnaITTopics.MAGIC_LINK_VERIFIED, "auth.magic_link.verified",
+                session.getTxnId(), session.getTenantId(),
+                Map.of("accountId", session.getAccountId() != null ? session.getAccountId().toString() : "",
+                        "bootstrapSessionId", bootstrapSessionId.toString()));
+
+        log.info("Magic link verified: txnId={}, bootstrapSessionId={}", txnId, bootstrapSessionId);
+        return new MagicLinkVerifyResponse(txnId, newState.name(), true, bootstrapSessionId, true);
+    }
+
+    public BootstrapSessionResponse validateBootstrapSession(BootstrapSessionValidateRequest request) {
+        String key = RedisCacheKeys.bootstrapSessionKey(request.sessionId());
+        String json = redisTemplate.opsForValue().get(key);
+
+        if (json == null) {
+            return new BootstrapSessionResponse(request.sessionId(), null, null, null, "BOOTSTRAP", false);
+        }
+
+        try {
+            AuthSessionData session = objectMapper.readValue(json, AuthSessionData.class);
+            return new BootstrapSessionResponse(
+                    request.sessionId(),
+                    session.getAccountId(),
+                    session.getTenantId(),
+                    null, // userId resolved from identity-service
+                    "BOOTSTRAP",
+                    true
+            );
+        } catch (JsonProcessingException e) {
+            log.error("Failed to deserialize bootstrap session: {}", request.sessionId(), e);
+            return new BootstrapSessionResponse(request.sessionId(), null, null, null, "BOOTSTRAP", false);
+        }
+    }
+
+    @Transactional
+    public BootstrapSessionResponse expireBootstrapSession(UUID sessionId) {
+        String key = RedisCacheKeys.bootstrapSessionKey(sessionId);
+        redisTemplate.delete(key);
+
+        publishBootstrapDisabledEvent(sessionId);
+
+        log.info("Bootstrap session expired: sessionId={}", sessionId);
+        return new BootstrapSessionResponse(sessionId, null, null, null, "BOOTSTRAP", false);
+    }
+
+    // ---- Bootstrap: FIDO Enrollment Transitions ----
+
+    @Transactional
+    public AuthStatusResponse startFidoEnrollment(UUID txnId) {
+        AuthSessionData session = loadSession(txnId);
+        validateNotExpired(session);
+
+        if (session.getCurrentState() != AuthState.ONBOARDING_REQUIRED) {
+            throw new IllegalStateException("Cannot start FIDO enrollment in state: " + session.getCurrentState());
+        }
+
+        AuthState newState = stateMachine.transition(session.getCurrentState(), AuthEvent.FIDO_ENROLLMENT_STARTED);
+        session.setCurrentState(newState);
+        saveSession(session);
+        updateTransactionState(txnId, newState, null);
+
+        log.info("FIDO enrollment started: txnId={}", txnId);
+        return new AuthStatusResponse(txnId, newState.name(), session.getStartedAt(),
+                session.getExpiresAt(), null);
+    }
+
+    @Transactional
+    public AuthStatusResponse completeFidoEnrollment(UUID txnId) {
+        AuthSessionData session = loadSession(txnId);
+        validateNotExpired(session);
+
+        if (session.getCurrentState() != AuthState.FIDO_ENROLLMENT_IN_PROGRESS) {
+            throw new IllegalStateException("Cannot complete FIDO enrollment in state: " + session.getCurrentState());
+        }
+
+        AuthState newState = stateMachine.transition(session.getCurrentState(), AuthEvent.FIDO_ENROLLMENT_COMPLETED);
+        session.setCurrentState(newState);
+        session.getAuthMethodsUsed().add(FactorType.FIDO.name());
+        saveSession(session);
+        updateTransactionState(txnId, newState, Instant.now());
+
+        // Expire bootstrap session after successful FIDO enrollment
+        if (session.getBootstrapSessionId() != null) {
+            expireBootstrapSession(session.getBootstrapSessionId());
+        }
+
+        // Issue tokens for the now-authenticated user
+        issueTokens(session);
+        createAuthResult(txnId, session.getTenantId(), AuthResultType.SUCCESS,
+                session.getAuthMethodsUsed(), null, null);
+
+        publishAuthEvent(InnaITTopics.AUTH_SUCCEEDED, "auth.succeeded",
+                txnId, session.getTenantId(),
+                Map.of("accountId", session.getAccountId() != null ? session.getAccountId().toString() : "",
+                        "methods", String.join(",", session.getAuthMethodsUsed()),
+                        "bootstrapFlow", "true"));
+
+        log.info("FIDO enrollment completed, auth complete: txnId={}", txnId);
         return new AuthStatusResponse(txnId, newState.name(), session.getStartedAt(),
                 session.getExpiresAt(), Instant.now());
     }
@@ -465,6 +626,7 @@ public class AuthOrchestrationService {
         EventEnvelope<Map<String, Object>> event = EventEnvelope.<Map<String, Object>>builder()
                 .eventType("account.status.changed")
                 .tenantId(session.getTenantId())
+                .correlationId(CorrelationContext.getCorrelationId())
                 .payload(payload)
                 .build();
         eventPublisher.publish(InnaITTopics.ACCOUNT_STATUS_CHANGED, event);
@@ -486,9 +648,38 @@ public class AuthOrchestrationService {
 
     // ---- Policy Resolution ----
 
-    private List<String> determinePrimaryMethods() {
-        // In production: call Policy Service to get configured auth methods per tenant
+    private List<String> determinePrimaryMethods(String loginId, UUID tenantId) {
+        // Check if the account is bootstrap-eligible:
+        // 1. Account has no enrolled FIDO credential
+        // 2. Bootstrap is enabled for the account
+        // 3. An assigned FIDO device exists
+        // In production: these checks call credential-service via REST.
+        if (isBootstrapEligible(loginId, tenantId)) {
+            return List.of("MAGIC_LINK");
+        }
+        // Default: standard authentication methods from policy service
         return List.of("PASSWORD", "FIDO");
+    }
+
+    private boolean isBootstrapEligible(String loginId, UUID tenantId) {
+        // Delegate to credential-service to check bootstrap eligibility.
+        // In production: REST call to credential-service:
+        //   GET /api/v1/device-registry/bootstrap-eligible?loginId={loginId}&tenantId={tenantId}
+        // which checks:
+        //   1. AccountBootstrapState.bootstrapEnabled = true AND firstLoginPending = true AND fidoEnrolled = false
+        //   2. Active device assignment exists for the account
+        //   3. No active FIDO credentials enrolled for the account
+        // For now, delegate to Redis-cached bootstrap state if available.
+        try {
+            String bootstrapKey = RedisCacheKeys.MAGIC_LINK_PREFIX + ":eligible:" + tenantId + ":" + loginId;
+            String cached = redisTemplate.opsForValue().get(bootstrapKey);
+            if (cached != null) {
+                return "true".equals(cached);
+            }
+        } catch (Exception e) {
+            log.debug("Bootstrap eligibility check failed for loginId={}: {}", loginId, e.getMessage());
+        }
+        return false;
     }
 
     private List<String> determineMfaMethods() {
@@ -589,6 +780,29 @@ public class AuthOrchestrationService {
         }
     }
 
+    // ---- Bootstrap Session Management ----
+
+    private void storeBootstrapSession(UUID bootstrapSessionId, AuthSessionData session) {
+        try {
+            String json = objectMapper.writeValueAsString(session);
+            String key = RedisCacheKeys.bootstrapSessionKey(bootstrapSessionId);
+            redisTemplate.opsForValue().set(key, json, RedisCacheKeys.BOOTSTRAP_SESSION_TTL, TimeUnit.SECONDS);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize bootstrap session", e);
+        }
+    }
+
+    private UUID extractTxnIdFromToken(String token) {
+        // In production: decode the magic link token which contains encrypted metadata
+        // including txnId. The token is generated by credential-service.
+        // For now, the token encodes the txnId directly (placeholder for inter-service call).
+        try {
+            return UUID.fromString(token);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid magic link token");
+        }
+    }
+
     // ---- Event Publishing ----
 
     private void publishAuthEvent(String topic, String eventType, UUID txnId, UUID tenantId,
@@ -600,8 +814,19 @@ public class AuthOrchestrationService {
         EventEnvelope<Map<String, Object>> event = EventEnvelope.<Map<String, Object>>builder()
                 .eventType(eventType)
                 .tenantId(tenantId)
+                .correlationId(CorrelationContext.getCorrelationId())
                 .payload(payload)
                 .build();
         eventPublisher.publish(topic, event);
+    }
+
+    private void publishBootstrapDisabledEvent(UUID sessionId) {
+        EventEnvelope<Map<String, Object>> event = EventEnvelope.<Map<String, Object>>builder()
+                .eventType("auth.bootstrap.disabled")
+                .tenantId(TenantContext.getTenantId())
+                .correlationId(CorrelationContext.getCorrelationId())
+                .payload(Map.of("bootstrapSessionId", sessionId.toString()))
+                .build();
+        eventPublisher.publish(InnaITTopics.BOOTSTRAP_DISABLED, event);
     }
 }

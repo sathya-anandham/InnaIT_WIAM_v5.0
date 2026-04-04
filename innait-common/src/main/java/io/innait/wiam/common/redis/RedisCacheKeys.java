@@ -21,6 +21,8 @@ public final class RedisCacheKeys {
     public static final String RESET_TOKEN_PREFIX = "reset";
     public static final String ONBOARDING_PREFIX = "onboarding";
     public static final String FORGOT_RATE_LIMIT_PREFIX = "ratelimit:forgot";
+    public static final String MAGIC_LINK_PREFIX = "bootstrap:magiclink";
+    public static final String BOOTSTRAP_SESSION_PREFIX = "bootstrap:session";
 
     // TTL defaults (seconds)
     public static final long AUTH_TXN_TTL = 300;          // 5 minutes
@@ -32,6 +34,8 @@ public final class RedisCacheKeys {
     public static final long RESET_TOKEN_TTL = 900;        // 15 minutes
     public static final long ONBOARDING_TTL = 3600;        // 1 hour
     public static final long FORGOT_RATE_LIMIT_TTL = 900;  // 15 minutes
+    public static final long MAGIC_LINK_TTL = 300;         // 5 minutes
+    public static final long BOOTSTRAP_SESSION_TTL = 900;  // 15 minutes
 
     // Key builders
 
@@ -73,5 +77,13 @@ public final class RedisCacheKeys {
 
     public static String forgotRateLimitKey(String email) {
         return FORGOT_RATE_LIMIT_PREFIX + ":" + email;
+    }
+
+    public static String magicLinkKey(UUID txnId) {
+        return MAGIC_LINK_PREFIX + ":" + txnId;
+    }
+
+    public static String bootstrapSessionKey(UUID sessionId) {
+        return BOOTSTRAP_SESSION_PREFIX + ":" + sessionId;
     }
 }

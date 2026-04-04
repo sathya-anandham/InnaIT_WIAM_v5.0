@@ -23,7 +23,9 @@ import io.innait.wiam.common.kafka.EventPublisher;
 import io.innait.wiam.common.kafka.InnaITTopics;
 import io.innait.wiam.common.redis.RedisCacheKeys;
 import io.innait.wiam.credentialservice.dto.*;
+import io.innait.wiam.credentialservice.entity.DeviceAssignment;
 import io.innait.wiam.credentialservice.entity.FidoCredential;
+import io.innait.wiam.credentialservice.repository.DeviceAssignmentRepository;
 import io.innait.wiam.credentialservice.repository.FidoCredentialRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,11 +47,16 @@ public class FidoCredentialService {
     private static final Logger log = LoggerFactory.getLogger(FidoCredentialService.class);
 
     private final FidoCredentialRepository fidoRepo;
+    private final DeviceAssignmentRepository assignmentRepo;
     private final StringRedisTemplate redisTemplate;
     private final EventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
     private final WebAuthnManager webAuthnManager;
     private final ObjectConverter objectConverter;
+    private final DeviceValidationService deviceValidationService;
+    private final DeviceLifecycleService deviceLifecycleService;
+    private final DeviceAssignmentService deviceAssignmentService;
+    private final MagicLinkBootstrapService magicLinkBootstrapService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Value("${innait.fido.rp-id:innait.io}")
@@ -61,31 +68,48 @@ public class FidoCredentialService {
     @Value("${innait.fido.origin:https://innait.io}")
     private String origin;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public FidoCredentialService(FidoCredentialRepository fidoRepo,
+                                  DeviceAssignmentRepository assignmentRepo,
                                   StringRedisTemplate redisTemplate,
                                   EventPublisher eventPublisher,
-                                  ObjectMapper objectMapper) {
+                                  ObjectMapper objectMapper,
+                                  DeviceValidationService deviceValidationService,
+                                  DeviceLifecycleService deviceLifecycleService,
+                                  DeviceAssignmentService deviceAssignmentService,
+                                  MagicLinkBootstrapService magicLinkBootstrapService) {
         this.fidoRepo = fidoRepo;
+        this.assignmentRepo = assignmentRepo;
         this.redisTemplate = redisTemplate;
         this.eventPublisher = eventPublisher;
         this.objectMapper = objectMapper;
+        this.deviceValidationService = deviceValidationService;
+        this.deviceLifecycleService = deviceLifecycleService;
+        this.deviceAssignmentService = deviceAssignmentService;
+        this.magicLinkBootstrapService = magicLinkBootstrapService;
         this.objectConverter = new ObjectConverter();
         this.webAuthnManager = WebAuthnManager.createNonStrictWebAuthnManager(objectConverter);
     }
 
     // visible for testing
     FidoCredentialService(FidoCredentialRepository fidoRepo,
+                           DeviceAssignmentRepository assignmentRepo,
                            StringRedisTemplate redisTemplate,
                            EventPublisher eventPublisher,
                            ObjectMapper objectMapper,
                            WebAuthnManager webAuthnManager,
                            ObjectConverter objectConverter) {
         this.fidoRepo = fidoRepo;
+        this.assignmentRepo = assignmentRepo;
         this.redisTemplate = redisTemplate;
         this.eventPublisher = eventPublisher;
         this.objectMapper = objectMapper;
         this.webAuthnManager = webAuthnManager;
         this.objectConverter = objectConverter;
+        this.deviceValidationService = null;
+        this.deviceLifecycleService = null;
+        this.deviceAssignmentService = null;
+        this.magicLinkBootstrapService = null;
     }
 
     @Transactional
@@ -321,6 +345,134 @@ public class FidoCredentialService {
         return fidoRepo.findByAccountId(accountId).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    // ---- Device-Aware FIDO Enrollment (Bootstrap Flow) ----
+
+    @Transactional
+    public FidoRegistrationBeginResponse beginDeviceAwareRegistration(UUID accountId, UUID deviceId,
+                                                                       String displayName) {
+        // Validate device assignment and eligibility
+        deviceValidationService.validateEnrollmentAllowed(accountId, deviceId);
+
+        UUID txnId = UUID.randomUUID();
+        byte[] challengeBytes = new byte[32];
+        secureRandom.nextBytes(challengeBytes);
+
+        String challengeB64 = Base64.getUrlEncoder().withoutPadding().encodeToString(challengeBytes);
+        String redisKey = RedisCacheKeys.fidoChallengeKey(txnId);
+
+        // Store challenge with device context: "challengeB64|deviceId"
+        String redisValue = challengeB64 + "|" + deviceId;
+        redisTemplate.opsForValue().set(redisKey, redisValue, RedisCacheKeys.FIDO_CHALLENGE_TTL, TimeUnit.SECONDS);
+
+        Map<String, Object> options = buildCreationOptions(accountId, displayName, challengeB64);
+
+        try {
+            String optionsJson = objectMapper.writeValueAsString(options);
+            log.info("Device-aware FIDO registration begun: account={}, device={}, txnId={}",
+                    accountId, deviceId, txnId);
+            return new FidoRegistrationBeginResponse(txnId, optionsJson);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize creation options", e);
+        }
+    }
+
+    @Transactional
+    public FidoCredentialResponse completeDeviceAwareRegistration(
+            DeviceAwareFidoRegistrationCompleteRequest request) {
+        String redisKey = RedisCacheKeys.fidoChallengeKey(request.txnId());
+        String storedValue = redisTemplate.opsForValue().get(redisKey);
+        if (storedValue == null) {
+            throw new IllegalStateException("Challenge expired or not found for txnId: " + request.txnId());
+        }
+        redisTemplate.delete(redisKey);
+
+        // Parse stored value: "challengeB64|deviceId"
+        String[] parts = storedValue.split("\\|", 2);
+        String storedChallenge = parts[0];
+        UUID storedDeviceId = parts.length > 1 ? UUID.fromString(parts[1]) : null;
+
+        if (storedDeviceId != null && !storedDeviceId.equals(request.deviceId())) {
+            throw new IllegalStateException("Device ID mismatch: expected " + storedDeviceId);
+        }
+
+        // Re-validate enrollment is still allowed
+        deviceValidationService.validateEnrollmentAllowed(request.accountId(), request.deviceId());
+
+        byte[] challengeBytes = Base64.getUrlDecoder().decode(storedChallenge);
+        Challenge challenge = new DefaultChallenge(challengeBytes);
+
+        byte[] attestationObjectBytes = Base64.getUrlDecoder().decode(request.attestationObject());
+        byte[] clientDataJSONBytes = Base64.getUrlDecoder().decode(request.clientDataJSON());
+
+        ServerProperty serverProperty = new ServerProperty(
+                new Origin(origin), rpId, challenge, null
+        );
+
+        RegistrationRequest registrationRequest = new RegistrationRequest(
+                attestationObjectBytes, clientDataJSONBytes
+        );
+
+        RegistrationParameters registrationParameters = new RegistrationParameters(
+                serverProperty, null, false, true
+        );
+
+        try {
+            RegistrationData registrationData = webAuthnManager.parse(registrationRequest);
+            webAuthnManager.validate(registrationData, registrationParameters);
+
+            AttestationObject attestationObject = registrationData.getAttestationObject();
+            AttestedCredentialData attestedCredData = attestationObject.getAuthenticatorData()
+                    .getAttestedCredentialData();
+
+            AttestedCredentialDataConverter converter = new AttestedCredentialDataConverter(objectConverter);
+            byte[] publicKeyCose = converter.convert(attestedCredData);
+
+            // Save FIDO credential with device linkage
+            FidoCredential credential = new FidoCredential();
+            credential.setAccountId(request.accountId());
+            credential.setCredentialId(request.credentialId());
+            credential.setPublicKeyCose(publicKeyCose);
+            credential.setAaguid(uuidFromBytes(attestedCredData.getAaguid().getBytes()));
+            credential.setSignCount(attestationObject.getAuthenticatorData().getSignCount());
+            credential.setBackupEligible(attestationObject.getAuthenticatorData().isFlagBE());
+            credential.setBackupState(attestationObject.getAuthenticatorData().isFlagBS());
+            credential.setDisplayName(request.credentialId().substring(
+                    0, Math.min(request.credentialId().length(), 32)));
+            credential.setCredentialStatus(CredentialStatus.ACTIVE);
+            credential.setDeviceId(request.deviceId());
+
+            FidoCredential saved = fidoRepo.save(credential);
+
+            // Update device status → ACTIVE
+            deviceLifecycleService.transitionDeviceStatus(request.deviceId(),
+                    io.innait.wiam.credentialservice.entity.DeviceStatus.ACTIVE,
+                    null, "FIDO enrollment completed");
+
+            // Update assignment status → ACTIVE
+            DeviceAssignment assignment = assignmentRepo
+                    .findActiveByDeviceAndAccount(request.deviceId(), request.accountId())
+                    .orElse(null);
+            if (assignment != null) {
+                deviceAssignmentService.activateAssignment(assignment.getId());
+            }
+
+            // Update bootstrap state: FIDO_ENROLLED=1, BOOTSTRAP_ENABLED=0, FIRST_LOGIN_PENDING=0
+            magicLinkBootstrapService.disableBootstrapAfterFidoActivation(request.accountId());
+
+            publishCredentialEvent(InnaITTopics.CREDENTIAL_ENROLLED, "fido.device_aware.registered",
+                    request.accountId(), saved.getId());
+
+            log.info("Device-aware FIDO registration complete: account={}, device={}, credId={}",
+                    request.accountId(), request.deviceId(), saved.getId());
+            return toResponse(saved);
+
+        } catch (ValidationException e) {
+            log.warn("Device-aware FIDO registration validation failed: account={}, device={}: {}",
+                    request.accountId(), request.deviceId(), e.getMessage());
+            throw new IllegalStateException("WebAuthn registration validation failed: " + e.getMessage(), e);
+        }
     }
 
     private Map<String, Object> buildCreationOptions(UUID accountId, String displayName, String challengeB64) {

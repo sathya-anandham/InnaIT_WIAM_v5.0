@@ -47,4 +47,25 @@ public final class InnaITTopics {
     public static final String TENANT_UPDATED = "innait.admin.tenant.updated";
     public static final String FEATURE_FLAG_CHANGED = "innait.admin.feature.flag.changed";
     public static final String CONFIG_UPDATED = "innait.admin.config.updated";
+
+    // Device domain
+    public static final String DEVICE_REGISTERED = "innait.device.device.registered";
+    public static final String DEVICE_UPDATED = "innait.device.device.updated";
+    public static final String DEVICE_STATUS_CHANGED = "innait.device.device.status.changed";
+    public static final String DEVICE_ACTIVATED = "innait.device.device.activated";
+    public static final String DEVICE_RETIRED = "innait.device.device.retired";
+    public static final String DEVICE_DECOMMISSIONED = "innait.device.device.decommissioned";
+    public static final String DEVICE_ASSIGNED = "innait.device.assignment.assigned";
+    public static final String DEVICE_ASSIGNMENT_ACTIVATED = "innait.device.assignment.activated";
+    public static final String DEVICE_ASSIGNMENT_REVOKED = "innait.device.assignment.revoked";
+    public static final String DEVICE_RETURNED = "innait.device.assignment.returned";
+    public static final String DEVICE_REASSIGNED = "innait.device.assignment.reassigned";
+    public static final String DEVICE_ENROLLMENT_BLOCKED = "innait.device.enrollment.blocked";
+
+    // Bootstrap / Magic Link domain
+    public static final String MAGIC_LINK_SENT = "innait.bootstrap.magiclink.sent";
+    public static final String MAGIC_LINK_VERIFIED = "innait.bootstrap.magiclink.verified";
+    public static final String MAGIC_LINK_EXPIRED = "innait.bootstrap.magiclink.expired";
+    public static final String BOOTSTRAP_SESSION_CREATED = "innait.bootstrap.session.created";
+    public static final String BOOTSTRAP_DISABLED = "innait.bootstrap.disabled";
 }

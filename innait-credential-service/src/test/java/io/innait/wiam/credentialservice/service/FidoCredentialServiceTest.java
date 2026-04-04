@@ -20,6 +20,7 @@ import io.innait.wiam.common.kafka.InnaITTopics;
 import io.innait.wiam.common.redis.RedisCacheKeys;
 import io.innait.wiam.credentialservice.dto.*;
 import io.innait.wiam.credentialservice.entity.FidoCredential;
+import io.innait.wiam.credentialservice.repository.DeviceAssignmentRepository;
 import io.innait.wiam.credentialservice.repository.FidoCredentialRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +46,9 @@ class FidoCredentialServiceTest {
     private FidoCredentialRepository fidoRepo;
 
     @Mock
+    private DeviceAssignmentRepository assignmentRepo;
+
+    @Mock
     private StringRedisTemplate redisTemplate;
 
     @Mock
@@ -67,7 +71,7 @@ class FidoCredentialServiceTest {
     @BeforeEach
     void setUp() throws Exception {
         TenantContext.setTenantId(tenantId);
-        service = new FidoCredentialService(fidoRepo, redisTemplate, eventPublisher,
+        service = new FidoCredentialService(fidoRepo, assignmentRepo, redisTemplate, eventPublisher,
                 objectMapper, webAuthnManager, objectConverter);
         // Inject @Value fields that Spring would normally set
         setField(service, "rpId", "innait.io");

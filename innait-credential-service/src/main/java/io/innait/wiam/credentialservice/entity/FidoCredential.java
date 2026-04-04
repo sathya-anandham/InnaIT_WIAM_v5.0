@@ -44,6 +44,9 @@ public class FidoCredential extends BaseEntity {
     @Column(name = "LAST_USED_AT")
     private Instant lastUsedAt;
 
+    @Column(name = "DEVICE_ID", columnDefinition = "RAW(16)")
+    private UUID deviceId;
+
     // Getters and setters
 
     public UUID getAccountId() { return accountId; }
@@ -75,4 +78,7 @@ public class FidoCredential extends BaseEntity {
 
     public Instant getLastUsedAt() { return lastUsedAt; }
     public void setLastUsedAt(Instant lastUsedAt) { this.lastUsedAt = lastUsedAt; }
+
+    public UUID getDeviceId() { return deviceId; }
+    public void setDeviceId(UUID deviceId) { this.deviceId = deviceId; }
 }

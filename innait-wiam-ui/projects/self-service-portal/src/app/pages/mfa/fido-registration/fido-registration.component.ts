@@ -121,7 +121,6 @@ import { MenuItem } from 'primeng/api';
                 *ngIf="errorMessage"
                 severity="error"
                 [text]="errorMessage"
-                [closable]="true"
                 (onClose)="errorMessage = ''"
                 role="alert">
               </p-message>
@@ -146,7 +145,6 @@ import { MenuItem } from 'primeng/api';
                 *ngIf="errorMessage"
                 severity="error"
                 [text]="errorMessage"
-                [closable]="true"
                 (onClose)="errorMessage = ''"
                 role="alert">
               </p-message>
@@ -601,7 +599,7 @@ export class FidoRegistrationComponent implements OnInit, OnDestroy {
   private arrayBufferToBase64Url(buffer: ArrayBuffer): string {
     const bytes = new Uint8Array(buffer);
     let binary = '';
-    for (let i = 0; i < bytes.byteLength; i++) { binary += String.fromCharCode(bytes[i]); }
+    for (let i = 0; i < bytes.byteLength; i++) { binary += String.fromCharCode(bytes[i]!); }
     return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   }
 }

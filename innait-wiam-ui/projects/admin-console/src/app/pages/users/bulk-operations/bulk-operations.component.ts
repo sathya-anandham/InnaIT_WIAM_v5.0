@@ -603,7 +603,7 @@ const MAX_DISPLAY_ACCOUNTS = 20;
               <div
                 *ngIf="effectiveSelectedAccounts.length > MAX_DISPLAY_ACCOUNTS"
                 class="more-accounts">
-                {{ 'bulkOps.confirm.andMore' | translate: { count: effectiveSelectedAccounts.length - MAX_DISPLAY_ACCOUNTS } }}
+                {{ 'bulkOps.confirm.andMore' | translate: { count: $any(effectiveSelectedAccounts.length - MAX_DISPLAY_ACCOUNTS) } }}
               </div>
             </div>
           </div>
@@ -1425,14 +1425,14 @@ export class BulkOperationsComponent implements OnInit, OnDestroy {
 
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
-      this.processCsvFile(files[0]);
+      this.processCsvFile(files[0]!);
     }
   }
 
   onCsvFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.processCsvFile(input.files[0]);
+      this.processCsvFile(input.files[0]!);
       input.value = '';
     }
   }
@@ -1472,7 +1472,7 @@ export class BulkOperationsComponent implements OnInit, OnDestroy {
         }
 
         // Skip header if it looks like a header
-        const firstLine = lines[0].toLowerCase();
+        const firstLine = lines[0]!.toLowerCase();
         const startsAt =
           firstLine === 'loginid' ||
           firstLine === 'email' ||
@@ -1481,7 +1481,7 @@ export class BulkOperationsComponent implements OnInit, OnDestroy {
             ? 1
             : 0;
 
-        const identifiers = lines.slice(startsAt).map((l) => l.split(',')[0].trim());
+        const identifiers = lines.slice(startsAt).map((l) => l.split(',')[0]!.trim());
 
         if (identifiers.length === 0) {
           this.csvUploadError = 'No identifiers found in the CSV.';

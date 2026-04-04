@@ -61,7 +61,6 @@ interface TestStatus {
           *ngIf="errorMessage && !loading"
           severity="error"
           [text]="errorMessage"
-          [closable]="true"
           (onClose)="errorMessage = ''"
           role="alert">
         </p-message>
@@ -148,7 +147,6 @@ interface TestStatus {
             *ngIf="successMessage"
             severity="success"
             [text]="successMessage"
-            [closable]="true"
             (onClose)="successMessage = ''"
             role="alert">
           </p-message>
@@ -175,7 +173,6 @@ interface TestStatus {
       <p-dialog
         [(visible)]="showDeactivateDialog"
         [modal]="true"
-        [closable]="true"
         [style]="{ width: '420px' }"
         [header]="'mfa.softtoken.management.deactivateDialog.title' | translate"
         aria-label="Confirm soft token deactivation">

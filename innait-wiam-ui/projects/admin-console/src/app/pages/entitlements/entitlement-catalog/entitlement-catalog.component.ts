@@ -22,6 +22,7 @@ import {
   IServerSideDatasource,
   IServerSideGetRowsParams,
   GridOptions,
+  CellClickedEvent,
 } from 'ag-grid-community';
 import { AuthService, ApiResponse, PaginationMeta, Entitlement } from '@innait/core';
 import { TranslatePipe } from '@innait/i18n';
@@ -205,7 +206,6 @@ interface MappedRoleInfo {
               [columnDefs]="activeColumnDefs"
               [defaultColDef]="defaultColDef"
               [rowModelType]="'serverSide'"
-              [serverSideStoreType]="'partial'"
               [pagination]="true"
               [paginationPageSize]="pageSize"
               [cacheBlockSize]="pageSize"
@@ -986,7 +986,7 @@ export class EntitlementCatalogComponent implements OnInit, OnDestroy {
         return `<a class="action-link" data-action="edit" data-ent-id="${params.data.id}">Edit</a>` +
                `<a class="action-link-danger" data-action="delete" data-ent-id="${params.data.id}">Delete</a>`;
       },
-      onCellClicked: (params: { data: EntitlementRow; event: Event }) => {
+      onCellClicked: (params: CellClickedEvent) => {
         const target = params.event?.target as HTMLElement;
         if (!target || !params.data) return;
         const action = target.getAttribute('data-action');
@@ -1125,7 +1125,7 @@ export class EntitlementCatalogComponent implements OnInit, OnDestroy {
   // ================================================================
   onGridReady(event: GridReadyEvent): void {
     this.gridApi = event.api;
-    this.gridApi.setServerSideDatasource(this.createDatasource());
+    this.gridApi.setGridOption('serverSideDatasource', this.createDatasource());
   }
 
   // ================================================================
@@ -1143,7 +1143,7 @@ export class EntitlementCatalogComponent implements OnInit, OnDestroy {
 
         const sortModel = params.request.sortModel;
         if (sortModel && sortModel.length > 0) {
-          httpParams = httpParams.set('sort', `${sortModel[0].colId},${sortModel[0].sort}`);
+          httpParams = httpParams.set('sort', `${sortModel[0]!.colId},${sortModel[0]!.sort}`);
         }
 
         if (this.filters.search) {
@@ -1235,8 +1235,8 @@ export class EntitlementCatalogComponent implements OnInit, OnDestroy {
 
     // Refresh grid with new columns
     if (this.gridApi) {
-      this.gridApi.setColumnDefs(this.activeColumnDefs);
-      this.gridApi.setServerSideDatasource(this.createDatasource());
+      this.gridApi.setGridOption('columnDefs', this.activeColumnDefs);
+      this.gridApi.setGridOption('serverSideDatasource', this.createDatasource());
     }
   }
 
@@ -1269,7 +1269,7 @@ export class EntitlementCatalogComponent implements OnInit, OnDestroy {
 
   refreshGrid(): void {
     if (this.gridApi) {
-      this.gridApi.setServerSideDatasource(this.createDatasource());
+      this.gridApi.setGridOption('serverSideDatasource', this.createDatasource());
     }
   }
 

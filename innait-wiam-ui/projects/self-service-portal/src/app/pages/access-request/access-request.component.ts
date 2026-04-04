@@ -237,7 +237,6 @@ type RequestType = 'ROLE' | 'GROUP' | 'ENTITLEMENT';
             *ngIf="errorMessage"
             severity="error"
             [text]="errorMessage"
-            [closable]="true"
             (onClose)="errorMessage = ''"
             role="alert">
           </p-message>
@@ -572,7 +571,7 @@ export class AccessRequestComponent implements OnInit, OnDestroy {
   }
 
   private formatDate(date: Date): string {
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split('T')[0] ?? '';
   }
 
   private endDateAfterStartDateValidator(control: AbstractControl): ValidationErrors | null {

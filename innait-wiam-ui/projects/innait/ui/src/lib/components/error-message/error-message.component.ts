@@ -7,7 +7,7 @@ import { MessageModule } from 'primeng/message';
   standalone: true,
   imports: [CommonModule, MessageModule],
   template: `
-    <p-message *ngIf="message" [severity]="severity" [text]="message" [closable]="closable" />
+    <p-message *ngIf="message" [severity]="severity" [text]="message" />
   `,
 })
 export class ErrorMessageComponent {

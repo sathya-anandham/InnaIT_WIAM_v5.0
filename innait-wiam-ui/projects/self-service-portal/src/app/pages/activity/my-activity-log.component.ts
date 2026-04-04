@@ -168,7 +168,6 @@ interface OutcomeOption {
           *ngIf="errorMessage && !loading"
           severity="error"
           [text]="errorMessage"
-          [closable]="true"
           (onClose)="errorMessage = ''"
           role="alert">
         </p-message>
@@ -525,9 +524,9 @@ export class MyActivityLogComponent implements OnInit, OnDestroy {
       });
   }
 
-  onPageChange(event: { first: number; rows: number; page: number }): void {
-    this.currentPage = event.page;
-    this.currentSize = event.rows;
+  onPageChange(event: { first?: number; rows?: number; page?: number }): void {
+    this.currentPage = event.page ?? 0;
+    this.currentSize = event.rows ?? 20;
     this.loadActivity();
   }
 

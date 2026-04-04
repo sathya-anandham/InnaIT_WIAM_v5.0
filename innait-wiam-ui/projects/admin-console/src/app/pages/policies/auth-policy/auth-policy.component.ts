@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Subject, takeUntil, finalize } from 'rxjs';
 
@@ -51,6 +51,7 @@ interface TestResult {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     TranslatePipe,
     CardModule,
     InputTextModule,
@@ -179,7 +180,6 @@ interface TestResult {
     <p-dialog [(visible)]="ruleDialogVisible"
               [header]="editingRule ? ('policies.authRules.editRule' | translate) : ('policies.authRules.createRule' | translate)"
               [modal]="true"
-              [closable]="true"
               [style]="{ width: '640px' }"
               [contentStyle]="{ 'overflow': 'visible' }"
               aria-label="Rule editor dialog">
@@ -262,12 +262,12 @@ interface TestResult {
                     icon="pi pi-play"
                     styleClass="p-button-outlined"
                     (onClick)="openTestDialogFromEditor()"
-                    [disabled]="!ruleForm?.get('rule')?.value"
+                    [disabled]="!ruleForm!.get('rule')!.value"
                     aria-label="Test the current rule">
           </p-button>
           <p-button [label]="editingRule ? ('common.update' | translate) : ('common.create' | translate)"
                     icon="pi pi-save"
-                    [disabled]="ruleForm?.invalid || savingRule"
+                    [disabled]="ruleForm!.invalid || savingRule"
                     [loading]="savingRule"
                     (onClick)="onSaveRule()"
                     [attr.aria-label]="editingRule ? 'Update rule' : 'Create rule'">
@@ -280,7 +280,6 @@ interface TestResult {
     <p-dialog [(visible)]="testDialogVisible"
               [header]="'policies.authRules.testRule' | translate"
               [modal]="true"
-              [closable]="true"
               [style]="{ width: '560px' }"
               aria-label="Test rule dialog">
       <div class="test-form">

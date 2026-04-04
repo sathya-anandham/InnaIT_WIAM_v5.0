@@ -30,7 +30,7 @@ import { TranslatePipe } from '@innait/i18n';
 
         <div class="help-section mt-3">
           <p class="text-sm">If you believe this is an error, contact your administrator:</p>
-          <p class="text-sm"><i class="pi pi-envelope"></i> support@innait.io</p>
+          <p class="text-sm"><i class="pi pi-envelope"></i> support&#64;innait.io</p>
         </div>
 
         <div class="button-group mt-3">

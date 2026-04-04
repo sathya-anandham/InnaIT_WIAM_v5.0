@@ -21,12 +21,23 @@ import { CommonModule } from '@angular/common';
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--surface-border, #dee2e6);
+      margin-bottom: 1.75rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--innait-border, #DFE0EB);
     }
-    .page-title { margin: 0; font-size: 1.5rem; font-weight: 600; }
-    .page-subtitle { margin: 0.25rem 0 0; color: var(--text-color-secondary); font-size: 0.875rem; }
+    .page-title {
+      margin: 0;
+      font-size: 1.375rem;
+      font-weight: 700;
+      color: var(--innait-text, #252733);
+      letter-spacing: -0.02em;
+    }
+    .page-subtitle {
+      margin: 0.375rem 0 0;
+      color: var(--innait-text-secondary, #9FA2B4);
+      font-size: 0.8125rem;
+      line-height: 1.4;
+    }
     .page-header-actions { display: flex; gap: 0.5rem; align-items: center; }
   `],
 })

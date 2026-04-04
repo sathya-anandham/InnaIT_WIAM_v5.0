@@ -64,7 +64,6 @@ interface BackupCodesGenerateResponse {
           *ngIf="errorMessage && !loading"
           severity="error"
           [text]="errorMessage"
-          [closable]="true"
           (onClose)="errorMessage = ''"
           role="alert">
         </p-message>
@@ -92,21 +91,21 @@ interface BackupCodesGenerateResponse {
         <div *ngIf="!loading && status?.generated && !revealedCodes" class="status-section">
           <div class="stats-grid" role="group" aria-label="Backup codes statistics">
             <div class="stat-card">
-              <span class="stat-value">{{ status.totalCodes }}</span>
+              <span class="stat-value">{{ status?.totalCodes }}</span>
               <span class="stat-label">{{ 'mfa.backupCodes.stats.total' | translate }}</span>
             </div>
-            <div class="stat-card" [class.stat-warning]="status.remainingCodes < 3">
-              <span class="stat-value">{{ status.remainingCodes }}</span>
+            <div class="stat-card" [class.stat-warning]="status!.remainingCodes < 3">
+              <span class="stat-value">{{ status?.remainingCodes }}</span>
               <span class="stat-label">{{ 'mfa.backupCodes.stats.remaining' | translate }}</span>
             </div>
             <div class="stat-card">
-              <span class="stat-value stat-date">{{ status.generatedAt | date:'mediumDate' }}</span>
+              <span class="stat-value stat-date">{{ status?.generatedAt | date:'mediumDate' }}</span>
               <span class="stat-label">{{ 'mfa.backupCodes.stats.generatedOn' | translate }}</span>
             </div>
           </div>
 
           <p-message
-            *ngIf="status.remainingCodes < 3"
+            *ngIf="status!.remainingCodes < 3"
             severity="warn"
             [text]="'mfa.backupCodes.fewRemainingWarning' | translate"
             role="alert"
@@ -195,7 +194,6 @@ interface BackupCodesGenerateResponse {
         [(visible)]="showPasswordDialog"
         [header]="'mfa.backupCodes.passwordDialog.title' | translate"
         [modal]="true"
-        [closable]="true"
         [draggable]="false"
         [resizable]="false"
         [style]="{ width: '400px' }"
@@ -257,7 +255,6 @@ interface BackupCodesGenerateResponse {
         [(visible)]="showRegenerateDialog"
         [header]="'mfa.backupCodes.regenerateDialog.title' | translate"
         [modal]="true"
-        [closable]="true"
         [draggable]="false"
         [resizable]="false"
         [style]="{ width: '450px' }"

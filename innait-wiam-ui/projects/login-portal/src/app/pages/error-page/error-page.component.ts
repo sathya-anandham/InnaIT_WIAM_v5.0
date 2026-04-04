@@ -60,7 +60,7 @@ export class ErrorPageComponent implements OnInit {
   ngOnInit(): void {
     const errorCode = this.route.snapshot.queryParamMap.get('code');
     if (errorCode && this.errorMessages[errorCode]) {
-      this.displayMessage = this.errorMessages[errorCode];
+      this.displayMessage = this.errorMessages[errorCode]!;
     }
     // Never display raw error details that could leak credentials
   }

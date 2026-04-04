@@ -53,7 +53,7 @@ export class DarkModeToggleComponent implements OnDestroy {
 
   cycle(): void {
     const idx = this.modes.indexOf(this.currentMode);
-    const next = this.modes[(idx + 1) % this.modes.length];
+    const next = this.modes[(idx + 1) % this.modes.length]!;
     this.theming.setMode(next);
   }
 

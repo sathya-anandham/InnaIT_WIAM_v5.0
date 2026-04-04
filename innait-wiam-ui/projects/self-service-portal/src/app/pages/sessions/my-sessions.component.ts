@@ -79,7 +79,6 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
           *ngIf="errorMessage && !loading"
           severity="error"
           [text]="errorMessage"
-          [closable]="true"
           (onClose)="errorMessage = ''"
           role="alert">
         </p-message>
@@ -89,7 +88,6 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
           *ngIf="successMessage"
           severity="success"
           [text]="successMessage"
-          [closable]="true"
           (onClose)="successMessage = ''"
           role="status">
         </p-message>
@@ -194,7 +192,6 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
         [(visible)]="showRevokeDialog"
         [header]="'sessions.revokeDialog.title' | translate"
         [modal]="true"
-        [closable]="true"
         [draggable]="false"
         [resizable]="false"
         [style]="{ width: '420px' }"
@@ -234,7 +231,6 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
         [(visible)]="showRevokeAllDialog"
         [header]="'sessions.revokeAllDialog.title' | translate"
         [modal]="true"
-        [closable]="true"
         [draggable]="false"
         [resizable]="false"
         [style]="{ width: '420px' }"

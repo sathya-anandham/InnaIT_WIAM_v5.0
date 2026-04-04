@@ -29,7 +29,8 @@
       "@innait/ui": ["dist/innait/ui"],
       "@innait/ui/*": ["dist/innait/ui/*"],
       "@innait/i18n": ["dist/innait/i18n"],
-      "@innait/i18n/*": ["dist/innait/i18n/*"]
+      "@innait/i18n/*": ["dist/innait/i18n/*"],
+      "chart.js/dist/types/utils": ["node_modules/chart.js/dist/types/utils.d.ts"]
     }
   },
   "angularCompilerOptions": {

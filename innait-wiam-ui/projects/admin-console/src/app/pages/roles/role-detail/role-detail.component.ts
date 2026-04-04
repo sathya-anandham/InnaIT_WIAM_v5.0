@@ -24,6 +24,7 @@ import {
   IServerSideGetRowsParams,
   SelectionChangedEvent,
   GridOptions,
+  CellClickedEvent,
 } from 'ag-grid-community';
 
 import {
@@ -345,7 +346,6 @@ interface RoleTypeOption {
                   [columnDefs]="entitlementColDefs"
                   [defaultColDef]="defaultColDef"
                   [rowModelType]="'serverSide'"
-                  [serverSideStoreType]="'partial'"
                   [pagination]="true"
                   [paginationPageSize]="25"
                   [cacheBlockSize]="25"
@@ -398,7 +398,6 @@ interface RoleTypeOption {
                   [columnDefs]="memberColDefs"
                   [defaultColDef]="defaultColDef"
                   [rowModelType]="'serverSide'"
-                  [serverSideStoreType]="'partial'"
                   [pagination]="true"
                   [paginationPageSize]="25"
                   [cacheBlockSize]="25"
@@ -1269,7 +1268,7 @@ export class RoleDetailComponent implements OnInit, OnDestroy {
         if (!params.data) return '';
         return `<a class="action-link" data-action="unmap" data-ent-id="${params.data.id}">Unmap</a>`;
       },
-      onCellClicked: (params: { data: MappedEntitlement; event: Event }) => {
+      onCellClicked: (params: CellClickedEvent) => {
         const target = params.event?.target as HTMLElement;
         if (target?.getAttribute('data-action') === 'unmap' && params.data) {
           this.unmapEntitlement(params.data.id);
@@ -1322,7 +1321,7 @@ export class RoleDetailComponent implements OnInit, OnDestroy {
         if (!params.data) return '';
         return `<a class="action-link" data-action="remove" data-user-id="${params.data.userId}">Remove</a>`;
       },
-      onCellClicked: (params: { data: RoleMember; event: Event }) => {
+      onCellClicked: (params: CellClickedEvent) => {
         const target = params.event?.target as HTMLElement;
         if (target?.getAttribute('data-action') === 'remove' && params.data) {
           this.confirmRemoveMember([params.data]);
@@ -1485,7 +1484,7 @@ export class RoleDetailComponent implements OnInit, OnDestroy {
   // ================================================================
   onEntitlementGridReady(event: GridReadyEvent): void {
     this.entGridApi = event.api;
-    this.entGridApi.setServerSideDatasource(this.createEntitlementDatasource());
+    this.entGridApi.setGridOption('serverSideDatasource', this.createEntitlementDatasource());
   }
 
   private createEntitlementDatasource(): IServerSideDatasource {
@@ -1599,7 +1598,7 @@ export class RoleDetailComponent implements OnInit, OnDestroy {
 
   private refreshEntitlementGrid(): void {
     if (this.entGridApi) {
-      this.entGridApi.setServerSideDatasource(this.createEntitlementDatasource());
+      this.entGridApi.setGridOption('serverSideDatasource', this.createEntitlementDatasource());
     }
   }
 
@@ -1608,7 +1607,7 @@ export class RoleDetailComponent implements OnInit, OnDestroy {
   // ================================================================
   onMemberGridReady(event: GridReadyEvent): void {
     this.memberGridApi = event.api;
-    this.memberGridApi.setServerSideDatasource(this.createMemberDatasource());
+    this.memberGridApi.setGridOption('serverSideDatasource', this.createMemberDatasource());
   }
 
   onMemberSelectionChanged(_event: SelectionChangedEvent): void {
@@ -1765,7 +1764,7 @@ export class RoleDetailComponent implements OnInit, OnDestroy {
 
   private refreshMemberGrid(): void {
     if (this.memberGridApi) {
-      this.memberGridApi.setServerSideDatasource(this.createMemberDatasource());
+      this.memberGridApi.setGridOption('serverSideDatasource', this.createMemberDatasource());
     }
   }
 

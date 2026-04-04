@@ -131,7 +131,6 @@ import { SystemHealthComponent } from './widgets/system-health.component';
   styles: [
     `
       .dashboard-container {
-        padding: 24px;
         max-width: 1400px;
         margin: 0 auto;
       }
@@ -141,21 +140,22 @@ import { SystemHealthComponent } from './widgets/system-health.component';
         display: flex;
         align-items: flex-start;
         justify-content: space-between;
-        margin-bottom: 24px;
+        margin-bottom: 28px;
         flex-wrap: wrap;
         gap: 16px;
       }
       .header-left h1 {
         margin: 0;
-        font-size: 24px;
+        font-size: 1.5rem;
         font-weight: 700;
-        color: var(--text-color, #1e293b);
+        color: var(--innait-text, #252733);
+        letter-spacing: -0.02em;
       }
       .last-refresh {
         display: block;
         margin-top: 4px;
-        font-size: 12px;
-        color: var(--text-color-secondary, #6c757d);
+        font-size: 0.75rem;
+        color: var(--innait-text-secondary, #9FA2B4);
       }
       .header-actions {
         display: flex;
@@ -168,29 +168,29 @@ import { SystemHealthComponent } from './widgets/system-health.component';
         gap: 6px;
         padding: 8px 16px;
         border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
+        font-size: 0.8125rem;
+        font-weight: 500;
         cursor: pointer;
         transition: all 0.15s ease;
-        border: 1px solid var(--surface-border, #dee2e6);
-        background: var(--surface-card, #ffffff);
-        color: var(--text-color, #333);
+        border: 1px solid var(--innait-border, #DFE0EB);
+        background: var(--innait-surface, #ffffff);
+        color: var(--innait-text, #252733);
+        font-family: inherit;
       }
       .action-btn:hover {
-        background: var(--surface-ground, #f8f9fa);
-        border-color: var(--primary-color, #3b82f6);
-        color: var(--primary-color, #3b82f6);
+        border-color: var(--innait-primary, #3751FF);
+        color: var(--innait-primary, #3751FF);
       }
       .action-btn i {
         font-size: 14px;
       }
       .auto-refresh-btn.active {
-        background: var(--primary-color, #3b82f6);
+        background: var(--innait-primary, #3751FF);
         color: #ffffff;
-        border-color: var(--primary-color, #3b82f6);
+        border-color: var(--innait-primary, #3751FF);
       }
       .auto-refresh-btn.active:hover {
-        background: var(--primary-700, #2563eb);
+        background: var(--innait-primary-dark, #2A3FC7);
         color: #ffffff;
       }
 

@@ -1,5 +1,6 @@
 package io.innait.wiam.adminbff.controller;
 
+import io.innait.wiam.adminbff.client.DeviceServiceClient;
 import io.innait.wiam.adminbff.dto.*;
 import io.innait.wiam.adminbff.service.AccountRecoveryService;
 import io.innait.wiam.adminbff.service.ForgotPasswordService;
@@ -25,15 +26,18 @@ public class SelfServiceController {
     private final ForgotPasswordService forgotPasswordService;
     private final AccountRecoveryService accountRecoveryService;
     private final OnboardingService onboardingService;
+    private final DeviceServiceClient deviceClient;
 
     public SelfServiceController(SelfServiceFacade selfService,
                                   ForgotPasswordService forgotPasswordService,
                                   AccountRecoveryService accountRecoveryService,
-                                  OnboardingService onboardingService) {
+                                  OnboardingService onboardingService,
+                                  DeviceServiceClient deviceClient) {
         this.selfService = selfService;
         this.forgotPasswordService = forgotPasswordService;
         this.accountRecoveryService = accountRecoveryService;
         this.onboardingService = onboardingService;
+        this.deviceClient = deviceClient;
     }
 
     // ---- Profile ----
@@ -154,6 +158,30 @@ public class SelfServiceController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> completeOnboarding() {
         return ResponseEntity.ok(ApiResponse.success(
                 onboardingService.completeOnboarding(currentUserId())));
+    }
+
+    // ---- D. End-user Self-Service: Devices ----
+
+    @GetMapping("/devices")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMyAssignedDevices() {
+        InnaITAuthenticationToken auth = (InnaITAuthenticationToken)
+                SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(ApiResponse.success(
+                deviceClient.listAssignmentsByUser(auth.getUserId())));
+    }
+
+    @GetMapping("/devices/eligible")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMyEligibleDevices() {
+        // Eligible devices are resolved by userId via downstream service
+        return ResponseEntity.ok(ApiResponse.success(
+                deviceClient.listAssignmentsByUser(currentUserId())));
+    }
+
+    @PostMapping("/devices/validate-enrollment")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> validateMyEnrollment(
+            @RequestBody Map<String, Object> request) {
+        request.put("userId", currentUserId().toString());
+        return ResponseEntity.ok(ApiResponse.success(deviceClient.validateEnrollment(request)));
     }
 
     private UUID currentUserId() {

@@ -81,27 +81,26 @@ interface MfaAdoptionData {
   styles: [
     `
       .widget-card {
-        background: var(--surface-card, #ffffff);
-        border: 1px solid var(--surface-border, #dee2e6);
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        background: var(--innait-surface, #ffffff);
+        border: 1px solid var(--innait-border, #DFE0EB);
+        border-radius: var(--innait-card-radius, 12px);
+        box-shadow: var(--innait-card-shadow, 0 2px 10px rgba(0, 0, 0, 0.06));
         overflow: hidden;
         height: 100%;
         display: flex;
         flex-direction: column;
       }
       .widget-header {
-        padding: 16px 20px;
-        border-bottom: 1px solid var(--surface-border, #dee2e6);
-        background: var(--surface-ground, #f8f9fa);
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--innait-border, #DFE0EB);
       }
       .widget-header h3 {
         margin: 0;
-        font-size: 14px;
+        font-size: 0.8125rem;
         font-weight: 600;
-        color: var(--text-color, #333);
+        color: var(--innait-text-secondary, #9FA2B4);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.05em;
       }
       .widget-body {
         padding: 20px;
@@ -299,8 +298,8 @@ export class MfaAdoptionChartComponent implements OnInit, OnDestroy, OnChanges {
           this.totalCount = values.reduce((a, b) => a + b, 0);
 
           this.legendItems = keys.map((k) => ({
-            label: this.labels[k],
-            color: this.colors[k],
+            label: this.labels[k]!,
+            color: this.colors[k]!,
             percentage:
               this.totalCount > 0
                 ? ((data[k] / this.totalCount) * 100).toFixed(1)
@@ -308,11 +307,11 @@ export class MfaAdoptionChartComponent implements OnInit, OnDestroy, OnChanges {
           }));
 
           this.chartData = {
-            labels: keys.map((k) => this.labels[k]),
+            labels: keys.map((k) => this.labels[k]!),
             datasets: [
               {
                 data: values,
-                backgroundColor: keys.map((k) => this.colors[k]),
+                backgroundColor: keys.map((k) => this.colors[k]!),
                 borderWidth: 2,
                 borderColor: '#ffffff',
               },

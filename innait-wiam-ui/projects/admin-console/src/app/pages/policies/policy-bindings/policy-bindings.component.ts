@@ -173,7 +173,6 @@ interface TargetOption {
     <p-dialog [(visible)]="createDialogVisible"
               [header]="'policies.bindings.createBinding' | translate"
               [modal]="true"
-              [closable]="true"
               [style]="{ width: '560px' }"
               [contentStyle]="{ 'overflow': 'visible' }"
               aria-label="Create policy binding dialog">
@@ -270,7 +269,7 @@ interface TargetOption {
           </p-button>
           <p-button [label]="'policies.bindings.create' | translate"
                     icon="pi pi-save"
-                    [disabled]="bindingForm?.invalid || savingBinding"
+                    [disabled]="bindingForm!.invalid || savingBinding"
                     [loading]="savingBinding"
                     (onClick)="onSaveBinding()"
                     aria-label="Create binding">
@@ -771,7 +770,8 @@ export class PolicyBindingsComponent implements OnInit, OnDestroy {
 
     // Reorder the list
     const movedItem = this.filteredBindings.splice(this.dragIndex, 1)[0];
-    this.filteredBindings.splice(dropIndex, 0, movedItem);
+    this.filteredBindings.splice(dropIndex, 0, movedItem!);
+
 
     // Update priorities based on new order
     this.filteredBindings.forEach((binding, i) => {
@@ -911,14 +911,14 @@ export class PolicyBindingsComponent implements OnInit, OnDestroy {
       APPLICATION: '/api/v1/admin/applications'
     };
 
-    this.http.get<ApiResponse<any[]>>(targetEndpointMap[targetType])
+    this.http.get<ApiResponse<any[]>>(targetEndpointMap[targetType]!)
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => this.loadingTargets = false)
       )
       .subscribe({
         next: (response) => {
-          const data = response.data || [];
+          const data = (response as any).data || [];
           this.availableTargets = data.map((t: any) => ({
             label: t.displayName || t.name || t.roleName || t.groupName || t.appName || t.id,
             value: t.id

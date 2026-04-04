@@ -287,7 +287,6 @@ const POLL_INTERVAL_MS = 2000;
               *ngIf="csvError"
               severity="error"
               [text]="csvError"
-              [closable]="true"
               (onClose)="csvError = null"
               styleClass="csv-error-msg">
             </p-message>
@@ -681,7 +680,6 @@ const POLL_INTERVAL_MS = 2000;
         header="{{ 'bulkReset.confirm.title' | translate }}"
         [(visible)]="showConfirmDialog"
         [modal]="true"
-        [closable]="true"
         [style]="{ width: '480px' }"
         aria-label="Confirm bulk password reset">
         <div class="confirm-dialog-content">
@@ -727,7 +725,6 @@ const POLL_INTERVAL_MS = 2000;
         header="{{ 'bulkReset.download.warningTitle' | translate }}"
         [(visible)]="showDownloadWarning"
         [modal]="true"
-        [closable]="true"
         [style]="{ width: '480px' }"
         aria-label="Security warning for credential download">
         <div class="download-warning-content">
@@ -1494,14 +1491,14 @@ export class BulkPasswordResetComponent implements OnInit, OnDestroy {
     this.dragOver = false;
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
-      this.parseCsvFile(files[0]);
+      this.parseCsvFile(files[0]!);
     }
   }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.parseCsvFile(input.files[0]);
+      this.parseCsvFile(input.files[0]!);
     }
     input.value = '';
   }
@@ -1523,7 +1520,7 @@ export class BulkPasswordResetComponent implements OnInit, OnDestroy {
           return;
         }
 
-        const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
+        const headers = lines[0]!.split(',').map((h) => h.trim().toLowerCase());
         const loginIdIdx = headers.indexOf('loginid');
         if (loginIdIdx === -1) {
           this.csvError = 'CSV must contain a "loginId" column header.';
@@ -1532,7 +1529,7 @@ export class BulkPasswordResetComponent implements OnInit, OnDestroy {
 
         const loginIds: string[] = [];
         for (let i = 1; i < lines.length; i++) {
-          const cols = lines[i].split(',');
+          const cols = lines[i]!.split(',');
           const loginId = cols[loginIdIdx]?.trim();
           if (loginId) {
             loginIds.push(loginId);

@@ -29,6 +29,8 @@ public class AuthSessionData implements Serializable {
     private List<String> availableMfaMethods = new ArrayList<>();
     private Instant startedAt;
     private Instant expiresAt;
+    private boolean bootstrapFlow;
+    private UUID bootstrapSessionId;
 
     public AuthSessionData() {
     }
@@ -79,4 +81,10 @@ public class AuthSessionData implements Serializable {
 
     public Instant getExpiresAt() { return expiresAt; }
     public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
+
+    public boolean isBootstrapFlow() { return bootstrapFlow; }
+    public void setBootstrapFlow(boolean bootstrapFlow) { this.bootstrapFlow = bootstrapFlow; }
+
+    public UUID getBootstrapSessionId() { return bootstrapSessionId; }
+    public void setBootstrapSessionId(UUID bootstrapSessionId) { this.bootstrapSessionId = bootstrapSessionId; }
 }

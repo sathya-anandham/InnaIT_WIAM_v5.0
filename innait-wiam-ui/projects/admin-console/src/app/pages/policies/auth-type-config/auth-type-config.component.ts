@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, FormControl } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Subject, takeUntil, finalize } from 'rxjs';
 
@@ -67,6 +67,7 @@ interface LevelOverride {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     TranslatePipe,
     TabViewModule,
     CardModule,
@@ -678,7 +679,7 @@ export class AuthTypeConfigComponent implements OnInit, OnDestroy {
     };
 
     const config = this.extractConfigFromForm(form);
-    this.saveConfig({ level: levelMap[level], targetId, config });
+    this.saveConfig({ level: levelMap[level]!, targetId, config });
   }
 
   private saveConfig(payload: { level: string; targetId: string | null; config: AuthTypeConfig }): void {

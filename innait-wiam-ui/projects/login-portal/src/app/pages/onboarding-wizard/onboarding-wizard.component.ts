@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { InputTextModule } from 'primeng/inputtext';
@@ -16,7 +16,7 @@ import { TranslatePipe } from '@innait/i18n';
 @Component({
   selector: 'app-onboarding-wizard',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputTextModule, ButtonModule, StepsModule, CheckboxModule, ProgressBarModule, LoginLayoutComponent, TranslatePipe],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, InputTextModule, ButtonModule, StepsModule, CheckboxModule, ProgressBarModule, LoginLayoutComponent, TranslatePipe],
   template: `
     <app-login-layout [title]="'onboarding.welcome' | translate">
       <p-steps [model]="steps" [activeIndex]="activeStep" [readonly]="true" styleClass="mb-4" />

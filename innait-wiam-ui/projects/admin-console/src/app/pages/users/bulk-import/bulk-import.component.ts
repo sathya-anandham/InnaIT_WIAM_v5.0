@@ -288,7 +288,7 @@ const API_BASE = '/api/v1/admin/users/bulk/import';
                     *ngIf="!row.valid"
                     class="pi pi-times-circle text-danger"
                     [pTooltip]="row.errors.join('; ')"
-                    aria-label="Invalid row: {{ row.errors.join('; ') }}">
+                    [attr.aria-label]="'Invalid row: ' + row.errors.join('; ')">
                   </i>
                 </td>
                 <td>{{ row.rowIndex + 1 }}</td>
@@ -948,14 +948,14 @@ export class BulkImportComponent implements OnInit, OnDestroy {
 
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
-      this.processFile(files[0]);
+      this.processFile(files[0]!);
     }
   }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.processFile(input.files[0]);
+      this.processFile(input.files[0]!);
       input.value = ''; // allow re-selecting the same file
     }
   }
@@ -1020,7 +1020,7 @@ export class BulkImportComponent implements OnInit, OnDestroy {
           return;
         }
 
-        this.csvHeaders = rows[0];
+        this.csvHeaders = rows[0]!;
         this.csvColumnOptions = this.csvHeaders.map((h) => ({
           label: h,
           value: h,
@@ -1109,7 +1109,7 @@ export class BulkImportComponent implements OnInit, OnDestroy {
           h.includes(targetLower),
       );
       if (matchIndex !== -1) {
-        mapping.mappedColumn = this.csvHeaders[matchIndex];
+        mapping.mappedColumn = this.csvHeaders[matchIndex]!;
       }
     }
   }
@@ -1292,7 +1292,7 @@ export class BulkImportComponent implements OnInit, OnDestroy {
   downloadErrorReport(): void {
     if (!this.importResult || this.importResult.errors.length === 0) return;
 
-    const headers = ['Row', 'Error Message', ...Object.keys(this.importResult.errors[0].data)];
+    const headers = ['Row', 'Error Message', ...Object.keys(this.importResult.errors[0]!.data)];
     const csvRows = [headers.join(',')];
 
     for (const err of this.importResult.errors) {

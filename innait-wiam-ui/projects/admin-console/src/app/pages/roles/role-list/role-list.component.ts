@@ -20,6 +20,7 @@ import {
   RowClickedEvent,
   SelectionChangedEvent,
   GridOptions,
+  CellClickedEvent,
 } from 'ag-grid-community';
 import { AuthService, ApiResponse, PaginationMeta, Role } from '@innait/core';
 import { TranslatePipe } from '@innait/i18n';
@@ -242,7 +243,6 @@ interface BulkStatusPayload {
               [columnDefs]="columnDefs"
               [defaultColDef]="defaultColDef"
               [rowModelType]="'serverSide'"
-              [serverSideStoreType]="'partial'"
               [pagination]="true"
               [paginationPageSize]="pageSize"
               [cacheBlockSize]="pageSize"
@@ -955,7 +955,7 @@ export class RoleListComponent implements OnInit, OnDestroy {
         if (!params.data) return '';
         return `<a class="action-link" data-action="view" data-role-id="${params.data.id}">View Details</a>`;
       },
-      onCellClicked: (params: { data: Role; event: Event }) => {
+      onCellClicked: (params: CellClickedEvent) => {
         const target = params.event?.target as HTMLElement;
         if (target?.getAttribute('data-action') === 'view' && params.data) {
           this.router.navigate(['/roles', params.data.id]);
@@ -1048,7 +1048,7 @@ export class RoleListComponent implements OnInit, OnDestroy {
   // ================================================================
   onGridReady(event: GridReadyEvent): void {
     this.gridApi = event.api;
-    this.gridApi.setServerSideDatasource(this.createDatasource());
+    this.gridApi.setGridOption('serverSideDatasource', this.createDatasource());
   }
 
   onSelectionChanged(_event: SelectionChangedEvent): void {
@@ -1086,8 +1086,8 @@ export class RoleListComponent implements OnInit, OnDestroy {
         // Sorting
         const sortModel = params.request.sortModel;
         if (sortModel && sortModel.length > 0) {
-          const sortCol = sortModel[0].colId;
-          const sortDir = sortModel[0].sort;
+          const sortCol = sortModel[0]!.colId;
+          const sortDir = sortModel[0]!.sort;
           httpParams = httpParams.set('sort', `${sortCol},${sortDir}`);
         }
 
@@ -1167,7 +1167,7 @@ export class RoleListComponent implements OnInit, OnDestroy {
   // ================================================================
   refreshGrid(): void {
     if (this.gridApi) {
-      this.gridApi.setServerSideDatasource(this.createDatasource());
+      this.gridApi.setGridOption('serverSideDatasource', this.createDatasource());
     }
   }
 

@@ -56,7 +56,6 @@ interface TotpStatus {
           *ngIf="errorMessage && !loading"
           severity="error"
           [text]="errorMessage"
-          [closable]="true"
           (onClose)="errorMessage = ''"
           role="alert">
         </p-message>
@@ -106,7 +105,6 @@ interface TotpStatus {
             *ngIf="successMessage"
             severity="success"
             [text]="successMessage"
-            [closable]="true"
             (onClose)="successMessage = ''"
             role="status">
           </p-message>
@@ -134,7 +132,6 @@ interface TotpStatus {
         [(visible)]="removeDialogVisible"
         [header]="'mfa.totp.manage.removeDialog.title' | translate"
         [modal]="true"
-        [closable]="true"
         [draggable]="false"
         [resizable]="false"
         [style]="{ width: '420px' }"

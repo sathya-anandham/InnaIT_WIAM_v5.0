@@ -37,7 +37,7 @@ export class TenantService {
 
     // Pattern: {tenant}.auth.innait.io or {tenant}.admin.innait.io
     if (parts.length >= 3 && (parts[1] === 'auth' || parts[1] === 'admin')) {
-      this.setTenantId(parts[0]);
+      this.setTenantId(parts[0]!);
     }
   }
 

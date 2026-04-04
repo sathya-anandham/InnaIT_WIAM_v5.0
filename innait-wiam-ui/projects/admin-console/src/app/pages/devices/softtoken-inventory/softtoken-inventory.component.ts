@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { Observable, Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
   ColDef,
@@ -210,7 +210,6 @@ const PAGE_SIZE = 25;
             [columnDefs]="columnDefs"
             [gridOptions]="gridOptions"
             [rowModelType]="'serverSide'"
-            [serverSideStoreType]="'partial'"
             [pagination]="true"
             [paginationPageSize]="pageSize"
             [cacheBlockSize]="pageSize"
@@ -1062,7 +1061,7 @@ export class SoftTokenInventoryComponent implements OnInit, OnDestroy {
   executeAction(): void {
     this.actionInProgress = true;
     const { tokenId, action } = this.confirmDialog;
-    let request$;
+    let request$: Observable<ApiResponse<any>>;
 
     if (action === 'suspend') {
       request$ = this.http.post<ApiResponse<void>>(
@@ -1079,7 +1078,7 @@ export class SoftTokenInventoryComponent implements OnInit, OnDestroy {
     }
 
     request$.pipe(takeUntil(this.destroy$)).subscribe({
-      next: (res: any) => {
+      next: (res: ApiResponse<any>) => {
         this.actionInProgress = false;
         this.confirmDialog.visible = false;
 
@@ -1096,7 +1095,7 @@ export class SoftTokenInventoryComponent implements OnInit, OnDestroy {
           this.refreshGrid();
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         this.actionInProgress = false;
         if (action === 'test-push') {
           this.confirmDialog.visible = false;

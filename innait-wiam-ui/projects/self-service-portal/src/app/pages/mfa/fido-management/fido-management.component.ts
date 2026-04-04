@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -36,6 +37,7 @@ interface FidoKeyRow extends FidoKey {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     RouterLink,
     CardModule,
@@ -76,7 +78,6 @@ interface FidoKeyRow extends FidoKey {
           *ngIf="errorMessage && !loading"
           severity="error"
           [text]="errorMessage"
-          [closable]="true"
           (onClose)="errorMessage = ''"
           role="alert">
         </p-message>
@@ -86,7 +87,6 @@ interface FidoKeyRow extends FidoKey {
           *ngIf="successMessage && !loading"
           severity="success"
           [text]="successMessage"
-          [closable]="true"
           (onClose)="successMessage = ''"
           role="status">
         </p-message>
@@ -195,7 +195,6 @@ interface FidoKeyRow extends FidoKey {
         [(visible)]="removeDialogVisible"
         [header]="'mfa.fido.manage.removeDialog.title' | translate"
         [modal]="true"
-        [closable]="true"
         [draggable]="false"
         [resizable]="false"
         [style]="{ width: '420px' }"

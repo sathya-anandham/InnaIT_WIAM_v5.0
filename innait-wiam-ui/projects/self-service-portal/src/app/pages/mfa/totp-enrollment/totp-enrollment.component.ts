@@ -167,7 +167,6 @@ interface TotpEnrollResponse {
               *ngIf="errorMessage"
               severity="error"
               [text]="errorMessage"
-              [closable]="true"
               (onClose)="errorMessage = ''"
               role="alert">
             </p-message>

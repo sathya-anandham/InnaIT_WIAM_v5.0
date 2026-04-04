@@ -48,6 +48,27 @@ public class KafkaTopicConfig {
     // Connector domain
     @Bean public NewTopic connectorSyncCompletedTopic() { return buildTopic(InnaITTopics.CONNECTOR_SYNC_COMPLETED); }
 
+    // Device domain
+    @Bean public NewTopic deviceRegisteredTopic() { return buildTopic(InnaITTopics.DEVICE_REGISTERED); }
+    @Bean public NewTopic deviceUpdatedTopic() { return buildTopic(InnaITTopics.DEVICE_UPDATED); }
+    @Bean public NewTopic deviceStatusChangedTopic() { return buildTopic(InnaITTopics.DEVICE_STATUS_CHANGED); }
+    @Bean public NewTopic deviceAssignedTopic() { return buildTopic(InnaITTopics.DEVICE_ASSIGNED); }
+    @Bean public NewTopic deviceAssignmentActivatedTopic() { return buildTopic(InnaITTopics.DEVICE_ASSIGNMENT_ACTIVATED); }
+    @Bean public NewTopic deviceAssignmentRevokedTopic() { return buildTopic(InnaITTopics.DEVICE_ASSIGNMENT_REVOKED); }
+    @Bean public NewTopic deviceReturnedTopic() { return buildTopic(InnaITTopics.DEVICE_RETURNED); }
+    @Bean public NewTopic deviceReassignedTopic() { return buildTopic(InnaITTopics.DEVICE_REASSIGNED); }
+    @Bean public NewTopic deviceActivatedTopic() { return buildTopic(InnaITTopics.DEVICE_ACTIVATED); }
+    @Bean public NewTopic deviceRetiredTopic() { return buildTopic(InnaITTopics.DEVICE_RETIRED); }
+    @Bean public NewTopic deviceDecommissionedTopic() { return buildTopic(InnaITTopics.DEVICE_DECOMMISSIONED); }
+    @Bean public NewTopic deviceEnrollmentBlockedTopic() { return buildTopic(InnaITTopics.DEVICE_ENROLLMENT_BLOCKED); }
+
+    // Bootstrap domain
+    @Bean public NewTopic magicLinkSentTopic() { return buildTopic(InnaITTopics.MAGIC_LINK_SENT); }
+    @Bean public NewTopic magicLinkVerifiedTopic() { return buildTopic(InnaITTopics.MAGIC_LINK_VERIFIED); }
+    @Bean public NewTopic magicLinkExpiredTopic() { return buildTopic(InnaITTopics.MAGIC_LINK_EXPIRED); }
+    @Bean public NewTopic bootstrapSessionCreatedTopic() { return buildTopic(InnaITTopics.BOOTSTRAP_SESSION_CREATED); }
+    @Bean public NewTopic bootstrapDisabledTopic() { return buildTopic(InnaITTopics.BOOTSTRAP_DISABLED); }
+
     private NewTopic buildTopic(String name) {
         return TopicBuilder.name(name)
                 .partitions(partitions)

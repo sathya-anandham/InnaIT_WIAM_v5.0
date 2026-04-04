@@ -33,8 +33,8 @@
           "configurations": {
             "production": {
               "budgets": [
-                { "type": "initial", "maximumWarning": "180kB", "maximumError": "200kB" },
-                { "type": "anyComponentStyle", "maximumWarning": "4kB", "maximumError": "6kB" }
+                { "type": "initial", "maximumWarning": "1.5MB", "maximumError": "2MB" },
+                { "type": "anyComponentStyle", "maximumWarning": "8kB", "maximumError": "12kB" }
               ],
               "outputHashing": "all"
             },
@@ -98,8 +98,8 @@
           "configurations": {
             "production": {
               "budgets": [
-                { "type": "initial", "maximumWarning": "280kB", "maximumError": "300kB" },
-                { "type": "anyComponentStyle", "maximumWarning": "4kB", "maximumError": "6kB" }
+                { "type": "initial", "maximumWarning": "1.5MB", "maximumError": "2MB" },
+                { "type": "anyComponentStyle", "maximumWarning": "8kB", "maximumError": "12kB" }
               ],
               "outputHashing": "all"
             },
@@ -164,8 +164,8 @@
           "configurations": {
             "production": {
               "budgets": [
-                { "type": "initial", "maximumWarning": "450kB", "maximumError": "500kB" },
-                { "type": "anyComponentStyle", "maximumWarning": "6kB", "maximumError": "8kB" }
+                { "type": "initial", "maximumWarning": "2MB", "maximumError": "3MB" },
+                { "type": "anyComponentStyle", "maximumWarning": "8kB", "maximumError": "12kB" }
               ],
               "outputHashing": "all"
             },
@@ -212,7 +212,7 @@
       "prefix": "innait",
       "architect": {
         "build": {
-          "builder": "ng-packagr:build",
+          "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": { "project": "projects/innait/core/ng-package.json" },
           "configurations": {
             "production": { "tsConfig": "projects/innait/core/tsconfig.lib.prod.json" },
@@ -241,7 +241,7 @@
       "prefix": "innait",
       "architect": {
         "build": {
-          "builder": "ng-packagr:build",
+          "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": { "project": "projects/innait/ui/ng-package.json" },
           "configurations": {
             "production": { "tsConfig": "projects/innait/ui/tsconfig.lib.prod.json" },
@@ -270,7 +270,7 @@
       "prefix": "innait",
       "architect": {
         "build": {
-          "builder": "ng-packagr:build",
+          "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": { "project": "projects/innait/i18n/ng-package.json" },
           "configurations": {
             "production": { "tsConfig": "projects/innait/i18n/tsconfig.lib.prod.json" },

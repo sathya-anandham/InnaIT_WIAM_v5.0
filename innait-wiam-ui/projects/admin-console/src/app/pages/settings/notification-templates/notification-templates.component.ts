@@ -162,7 +162,7 @@ interface NotificationTemplate {
                               styleClass="p-button-outlined p-button-sm p-button-secondary"
                               (onClick)="insertVariable(variable)"
                               [pTooltip]="'Insert ' + variable"
-                              aria-label="Insert variable {{ variable }}">
+                              [attr.aria-label]="'Insert variable ' + variable">
                     </p-button>
                   </div>
                 </div>
@@ -616,11 +616,11 @@ export class NotificationTemplatesComponent implements OnInit, OnDestroy {
     this.templateForm.markAsPristine();
   }
 
-  getChannelSeverity(channel: Channel): string {
+  getChannelSeverity(channel: Channel): 'success' | 'info' | 'secondary' | 'contrast' | 'warning' | 'danger' {
     switch (channel) {
       case 'EMAIL': return 'info';
       case 'SMS': return 'success';
-      case 'PUSH': return 'help';
+      case 'PUSH': return 'secondary';
       default: return 'info';
     }
   }

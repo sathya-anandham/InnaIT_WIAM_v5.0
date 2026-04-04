@@ -5,5 +5,6 @@ public enum FactorType {
     FIDO,
     TOTP,
     SOFTTOKEN,
-    BACKUP_CODE
+    BACKUP_CODE,
+    MAGIC_LINK
 }
