@@ -7,14 +7,12 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "SESSION_EVENTS")
-@IdClass(SessionEventId.class)
 public class SessionEvent {
 
     @Id
     @Column(name = "SESSION_EVENT_ID", columnDefinition = "RAW(16)", updatable = false, nullable = false)
     private UUID sessionEventId;
 
-    @Id
     @Column(name = "EVENT_TIME", nullable = false, updatable = false)
     private Instant eventTime;
 

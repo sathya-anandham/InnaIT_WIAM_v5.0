@@ -8,14 +8,12 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "AUTH_TRANSACTIONS")
-@IdClass(AuthTransactionId.class)
 public class AuthTransaction {
 
     @Id
     @Column(name = "AUTH_TXN_ID", columnDefinition = "RAW(16)", updatable = false)
     private UUID authTxnId;
 
-    @Id
     @Column(name = "STARTED_AT", updatable = false)
     private Instant startedAt;
 
@@ -42,7 +40,7 @@ public class AuthTransaction {
     @Column(name = "USER_AGENT", length = 1000)
     private String userAgent;
 
-    @Column(name = "RISK_SCORE", precision = 5, scale = 2)
+    @Column(name = "RISK_SCORE")
     private Double riskScore;
 
     @Column(name = "DEVICE_CONTEXT_ID", columnDefinition = "RAW(16)")

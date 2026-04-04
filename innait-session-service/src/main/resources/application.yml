@@ -1,6 +1,11 @@
 spring:
   application:
     name: innait-session-service
+  main:
+    allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.session.SessionAutoConfiguration
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   datasource:
@@ -14,10 +19,12 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.OracleDialect
+        default_schema: INNAIT_SESSION
   flyway:
     locations: classpath:db/migration/session
     schemas: INNAIT_SESSION
     baseline-on-migrate: true
+    validate-on-migrate: false
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -30,6 +37,11 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+innait:
+  redis:
+    session:
+      enabled: false
 
 server:
   port: 8085

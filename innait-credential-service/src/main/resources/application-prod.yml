@@ -1,6 +1,9 @@
 spring:
   datasource:
     url: ${ORACLE_URL}
+  jpa:
+    hibernate:
+      ddl-auto: none
 
 logging:
   level:

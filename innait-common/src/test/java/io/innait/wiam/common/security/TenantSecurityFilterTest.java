@@ -12,6 +12,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -43,7 +44,8 @@ class TenantSecurityFilterTest {
 
     @BeforeEach
     void setUp() {
-        filter = new TenantSecurityFilter(dataSource);
+        filter = new TenantSecurityFilter();
+        ReflectionTestUtils.setField(filter, "dataSource", dataSource);
         SecurityContextHolder.clearContext();
         TenantContext.clear();
     }

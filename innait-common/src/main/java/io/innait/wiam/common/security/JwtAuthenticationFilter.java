@@ -46,16 +46,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private ConfigurableJWTProcessor<SecurityContext> jwtProcessor;
 
     @PostConstruct
-    void init() throws Exception {
-        JWKSource<SecurityContext> keySource = JWKSourceBuilder
-                .create(URI.create(jwksUrl).toURL())
-                .retrying(true)
-                .build();
-        JWSKeySelector<SecurityContext> keySelector =
-                new JWSVerificationKeySelector<>(JWSAlgorithm.RS256, keySource);
+    void init() {
+        try {
+            JWKSource<SecurityContext> keySource = JWKSourceBuilder
+                    .create(URI.create(jwksUrl).toURL())
+                    .retrying(true)
+                    .build();
+            JWSKeySelector<SecurityContext> keySelector =
+                    new JWSVerificationKeySelector<>(JWSAlgorithm.RS256, keySource);
 
-        jwtProcessor = new DefaultJWTProcessor<>();
-        jwtProcessor.setJWSKeySelector(keySelector);
+            jwtProcessor = new DefaultJWTProcessor<>();
+            jwtProcessor.setJWSKeySelector(keySelector);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to initialize JWT processor from JWKS URL: " + jwksUrl, e);
+        }
     }
 
     @Override

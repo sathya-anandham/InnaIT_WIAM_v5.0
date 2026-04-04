@@ -5,12 +5,14 @@ import jakarta.persistence.EntityManager;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.hibernate.Session;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
 @Aspect
 @Component
+@ConditionalOnBean(EntityManager.class)
 public class HibernateFilterConfig {
 
     private final EntityManager entityManager;

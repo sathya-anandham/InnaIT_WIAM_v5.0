@@ -3,8 +3,8 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install dependencies once (cache layer)
-COPY innait-wiam-ui/package.json innait-wiam-ui/package-lock.json ./
-RUN npm ci --ignore-scripts
+COPY innait-wiam-ui/package.json ./
+RUN npm install --ignore-scripts
 
 # Copy source
 COPY innait-wiam-ui/ .

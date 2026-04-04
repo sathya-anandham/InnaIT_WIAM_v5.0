@@ -14,10 +14,12 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.OracleDialect
+        default_schema: INNAIT_IDENTITY
   flyway:
     locations: classpath:db/migration/identity
     schemas: INNAIT_IDENTITY
     baseline-on-migrate: true
+    validate-on-migrate: false
   kafka:
     bootstrap-servers: ${KAFKA_BROKERS:localhost:9092}
     consumer:

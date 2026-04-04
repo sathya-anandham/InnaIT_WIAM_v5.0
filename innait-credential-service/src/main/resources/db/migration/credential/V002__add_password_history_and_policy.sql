@@ -53,8 +53,10 @@ CREATE TABLE PASSWORD_POLICIES (
 );
 
 CREATE INDEX IDX_PP_TENANT ON PASSWORD_POLICIES (TENANT_ID);
-CREATE UNIQUE INDEX IDX_PP_DEFAULT ON PASSWORD_POLICIES (TENANT_ID, IS_DEFAULT)
-    WHERE IS_DEFAULT = 1;
+-- Function-based unique index: only one default policy per tenant (Oracle doesn't support partial indexes)
+CREATE UNIQUE INDEX IDX_PP_DEFAULT ON PASSWORD_POLICIES (
+    CASE WHEN IS_DEFAULT = 1 THEN TENANT_ID ELSE NULL END
+);
 
 --------------------------------------------------------
 -- BACKUP_CODES: add missing columns for BaseEntity alignment

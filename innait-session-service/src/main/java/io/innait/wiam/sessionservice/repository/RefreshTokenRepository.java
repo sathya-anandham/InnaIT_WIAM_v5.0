@@ -17,11 +17,11 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID
     List<RefreshToken> findByTokenFamilyAndRevokedAtIsNull(UUID tokenFamily);
 
     @Modifying
-    @Query("UPDATE RefreshToken r SET r.revokedAt = CURRENT_TIMESTAMP WHERE r.tokenFamily = :family AND r.revokedAt IS NULL")
+    @Query("UPDATE RefreshToken r SET r.revokedAt = CURRENT_INSTANT WHERE r.tokenFamily = :family AND r.revokedAt IS NULL")
     void revokeTokenFamily(@Param("family") UUID tokenFamily);
 
     @Modifying
-    @Query("UPDATE RefreshToken r SET r.revokedAt = CURRENT_TIMESTAMP WHERE r.sessionId = :sessionId AND r.revokedAt IS NULL")
+    @Query("UPDATE RefreshToken r SET r.revokedAt = CURRENT_INSTANT WHERE r.sessionId = :sessionId AND r.revokedAt IS NULL")
     void revokeBySessionId(@Param("sessionId") UUID sessionId);
 
     List<RefreshToken> findBySessionIdAndRevokedAtIsNull(UUID sessionId);

@@ -14,10 +14,13 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.OracleDialect
+        default_schema: INNAIT_TENANT
   flyway:
     locations: classpath:db/migration/tenant,classpath:db/migration/config
     schemas: INNAIT_TENANT,INNAIT_CONFIG
     baseline-on-migrate: true
+    validate-on-migrate: false
+    ignore-migration-patterns: "*:future"
   kafka:
     bootstrap-servers: ${KAFKA_BROKERS:localhost:9092}
     consumer:
