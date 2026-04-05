@@ -27,6 +27,11 @@ public class AuthSessionData implements Serializable {
     private List<String> authMethodsUsed = new ArrayList<>();
     private List<String> availablePrimaryMethods = new ArrayList<>();
     private List<String> availableMfaMethods = new ArrayList<>();
+    // Identity data populated after successful primary factor verification
+    private String userId;
+    private String displayName;
+    private List<String> roles = new ArrayList<>();
+    private List<String> groups = new ArrayList<>();
     private Instant startedAt;
     private Instant expiresAt;
     private boolean bootstrapFlow;
@@ -87,4 +92,16 @@ public class AuthSessionData implements Serializable {
 
     public UUID getBootstrapSessionId() { return bootstrapSessionId; }
     public void setBootstrapSessionId(UUID bootstrapSessionId) { this.bootstrapSessionId = bootstrapSessionId; }
+
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
+
+    public List<String> getRoles() { return roles; }
+    public void setRoles(List<String> roles) { this.roles = roles; }
+
+    public List<String> getGroups() { return groups; }
+    public void setGroups(List<String> groups) { this.groups = groups; }
 }

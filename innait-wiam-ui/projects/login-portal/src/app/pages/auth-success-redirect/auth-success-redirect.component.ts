@@ -58,7 +58,10 @@ export class AuthSuccessRedirectComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/';
+    const state = this.authService.currentState;
+    const isSuperAdmin = state.roles?.includes('SUPER_ADMIN') || state.roles?.length === 0;
+    const defaultUrl = isSuperAdmin ? 'http://localhost:4400' : 'http://localhost:4300';
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? defaultUrl;
 
     // Redirect after a brief success display (1.5 seconds)
     this.redirectTimer = setTimeout(() => {

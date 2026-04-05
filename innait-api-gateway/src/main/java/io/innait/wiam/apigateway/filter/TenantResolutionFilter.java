@@ -76,6 +76,7 @@ public class TenantResolutionFilter implements GlobalFilter, Ordered {
     private boolean isPublicPath(String path) {
         return path.startsWith("/api/v1/auth/login")
                 || path.startsWith("/api/v1/tokens/refresh")
+                || path.startsWith("/api/v1/admin/tenants/resolve")
                 || path.startsWith("/.well-known")
                 || path.startsWith("/actuator")
                 || path.startsWith("/swagger-ui")

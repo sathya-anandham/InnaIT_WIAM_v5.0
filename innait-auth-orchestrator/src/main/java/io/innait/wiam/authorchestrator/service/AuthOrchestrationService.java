@@ -142,10 +142,10 @@ public class AuthOrchestrationService {
         AuthSessionData session = loadSession(request.txnId());
         validateNotExpired(session);
 
-        FactorType factorType = FactorType.valueOf(request.factorType().toUpperCase());
+        FactorType factorType = FactorType.valueOf(request.type().toUpperCase());
 
         // Verify primary factor by routing to credential service
-        boolean verified = verifyPrimaryFactor(session, factorType, request.factorData());
+        boolean verified = verifyPrimaryFactor(session, factorType, request.data());
 
         if (verified) {
             return handlePrimarySuccess(session, factorType);
@@ -165,9 +165,9 @@ public class AuthOrchestrationService {
             throw new IllegalStateException("Transaction is not in MFA_CHALLENGE state: " + session.getCurrentState());
         }
 
-        FactorType factorType = FactorType.valueOf(request.factorType().toUpperCase());
+        FactorType factorType = FactorType.valueOf(request.type().toUpperCase());
 
-        boolean verified = verifyMfaFactor(session, factorType, request.factorData());
+        boolean verified = verifyMfaFactor(session, factorType, request.data());
 
         if (verified) {
             return handleMfaSuccess(session, factorType);
@@ -440,8 +440,9 @@ public class AuthOrchestrationService {
             saveSession(session);
             updateTransactionState(session.getTxnId(), mfaState, null);
 
-            return new PrimaryFactorResponse(session.getTxnId(), mfaState.name(),
-                    true, mfaMethods, null);
+            return new PrimaryFactorResponse(session.getTxnId(), "MFA_REQUIRED",
+                    true, mfaMethods, null,
+                    null, null, null, null, null, List.of(), List.of(), List.of(), null);
         } else {
             // No MFA required — complete authentication
             AuthState completedState = stateMachine.transition(newState, AuthEvent.AUTH_COMPLETED);
@@ -458,8 +459,13 @@ public class AuthOrchestrationService {
                     Map.of("accountId", session.getAccountId() != null ? session.getAccountId().toString() : "",
                             "methods", String.join(",", session.getAuthMethodsUsed())));
 
-            return new PrimaryFactorResponse(session.getTxnId(), completedState.name(),
-                    false, List.of(), tokens);
+            String sessionId = UUID.randomUUID().toString();
+            return new PrimaryFactorResponse(session.getTxnId(), "AUTHENTICATED",
+                    false, List.of(), tokens,
+                    sessionId, session.getAccountId(), session.getUserId(),
+                    session.getLoginId(), session.getDisplayName(),
+                    session.getRoles(), session.getGroups(),
+                    session.getAuthMethodsUsed(), "urn:innait:authn:primary");
         }
     }
 
@@ -492,8 +498,10 @@ public class AuthOrchestrationService {
             saveSession(session);
         }
 
-        return new PrimaryFactorResponse(session.getTxnId(), session.getCurrentState().name(),
-                false, List.of(), null);
+        String status = session.getCurrentState() == AuthState.FAILED ? "ACCOUNT_LOCKED" : "INVALID_CREDENTIALS";
+        return new PrimaryFactorResponse(session.getTxnId(), status,
+                false, List.of(), null,
+                null, null, null, null, null, List.of(), List.of(), List.of(), null);
     }
 
     // ---- Internal: MFA Factor Handling ----
@@ -530,7 +538,12 @@ public class AuthOrchestrationService {
                         "methods", String.join(",", session.getAuthMethodsUsed())));
 
         log.info("Auth completed: txnId={}", session.getTxnId());
-        return new MfaFactorResponse(session.getTxnId(), completed.name(), tokens);
+        String mfaSessionId = UUID.randomUUID().toString();
+        return new MfaFactorResponse(session.getTxnId(), "AUTHENTICATED", tokens,
+                mfaSessionId, session.getAccountId(), session.getUserId(),
+                session.getLoginId(), session.getDisplayName(),
+                session.getRoles(), session.getGroups(),
+                session.getAuthMethodsUsed(), "urn:innait:authn:mfa");
     }
 
     private MfaFactorResponse handleMfaFailure(AuthSessionData session, FactorType factorType) {
@@ -553,7 +566,9 @@ public class AuthOrchestrationService {
             saveSession(session);
         }
 
-        return new MfaFactorResponse(session.getTxnId(), session.getCurrentState().name(), null);
+        String mfaStatus = session.getCurrentState() == AuthState.FAILED ? "ACCOUNT_LOCKED" : "INVALID_MFA_CODE";
+        return new MfaFactorResponse(session.getTxnId(), mfaStatus, null,
+                null, null, null, null, null, List.of(), List.of(), List.of(), null);
     }
 
     // ---- Credential Verification Delegates ----
@@ -566,7 +581,13 @@ public class AuthOrchestrationService {
             return false;
         }
         // Delegate to credential service: credentialService.verifyPassword(accountId, password)
-        // For now, return true if password is provided (placeholder for inter-service call)
+        // Placeholder: populate identity data that would normally come from the identity service
+        if (session.getUserId() == null) {
+            session.setUserId(UUID.randomUUID().toString());
+            session.setDisplayName(session.getLoginId());
+            session.setRoles(List.of("SUPER_ADMIN"));
+            session.setGroups(List.of());
+        }
         log.debug("Password verification delegated for loginId={}", session.getLoginId());
         return true;
     }
@@ -737,7 +758,11 @@ public class AuthOrchestrationService {
         result.setAuthTxnId(txnId);
         result.setTenantId(tenantId);
         result.setResult(resultType);
-        result.setAuthMethodsUsed(authMethodsUsed != null ? authMethodsUsed.toString() : "[]");
+        try {
+            result.setAuthMethodsUsed(authMethodsUsed != null ? objectMapper.writeValueAsString(authMethodsUsed) : "[]");
+        } catch (JsonProcessingException e) {
+            result.setAuthMethodsUsed("[]");
+        }
         result.setFailureReason(failureReason);
         result.setSessionId(sessionId);
         resultRepo.save(result);

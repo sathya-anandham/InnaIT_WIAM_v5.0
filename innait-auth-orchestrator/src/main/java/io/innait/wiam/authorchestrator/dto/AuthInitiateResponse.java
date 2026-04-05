@@ -6,6 +6,6 @@ import java.util.UUID;
 public record AuthInitiateResponse(
         UUID txnId,
         String state,
-        List<String> primaryMethods
+        List<String> availableMethods
 ) {
 }

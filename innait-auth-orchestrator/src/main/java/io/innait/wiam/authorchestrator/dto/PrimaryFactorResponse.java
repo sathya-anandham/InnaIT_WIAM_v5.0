@@ -5,9 +5,19 @@ import java.util.UUID;
 
 public record PrimaryFactorResponse(
         UUID txnId,
-        String state,
+        String status,
         boolean mfaRequired,
-        List<String> mfaMethods,
-        TokenSet tokens
+        List<String> availableMfaMethods,
+        TokenSet tokens,
+        // Identity fields — populated only when status=AUTHENTICATED
+        String sessionId,
+        UUID accountId,
+        String userId,
+        String loginId,
+        String displayName,
+        List<String> roles,
+        List<String> groups,
+        List<String> amr,
+        String acr
 ) {
 }

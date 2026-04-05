@@ -90,7 +90,7 @@ class AuthOrchestrationServiceTest {
 
             assertThat(response.txnId()).isNotNull();
             assertThat(response.state()).isEqualTo("PRIMARY_CHALLENGE");
-            assertThat(response.primaryMethods()).contains("PASSWORD", "FIDO");
+            assertThat(response.availableMethods()).contains("PASSWORD", "FIDO");
         }
 
         @Test
@@ -177,7 +177,7 @@ class AuthOrchestrationServiceTest {
 
             PrimaryFactorResponse response = service.submitPrimaryFactor(request);
 
-            assertThat(response.state()).isEqualTo("COMPLETED");
+            assertThat(response.status()).isEqualTo("AUTHENTICATED");
             assertThat(response.mfaRequired()).isFalse();
             assertThat(response.tokens()).isNotNull();
             assertThat(response.tokens().accessToken()).startsWith("access-token-");
@@ -196,9 +196,9 @@ class AuthOrchestrationServiceTest {
 
             PrimaryFactorResponse response = service.submitPrimaryFactor(request);
 
-            assertThat(response.state()).isEqualTo("MFA_CHALLENGE");
+            assertThat(response.status()).isEqualTo("MFA_REQUIRED");
             assertThat(response.mfaRequired()).isTrue();
-            assertThat(response.mfaMethods()).contains("TOTP", "FIDO", "SOFTTOKEN", "BACKUP_CODE");
+            assertThat(response.availableMfaMethods()).contains("TOTP", "FIDO", "SOFTTOKEN", "BACKUP_CODE");
             assertThat(response.tokens()).isNull();
         }
 
@@ -214,7 +214,7 @@ class AuthOrchestrationServiceTest {
 
             PrimaryFactorResponse response = service.submitPrimaryFactor(request);
 
-            assertThat(response.state()).isEqualTo("PRIMARY_CHALLENGE");
+            assertThat(response.status()).isEqualTo("INVALID_CREDENTIALS");
             // Verify session was saved with incremented failure count
             verify(redisTemplate.opsForValue(), atLeastOnce()).set(
                     anyString(), anyString(), anyLong(), any(TimeUnit.class));
@@ -237,7 +237,7 @@ class AuthOrchestrationServiceTest {
 
             PrimaryFactorResponse response = service.submitPrimaryFactor(request);
 
-            assertThat(response.state()).isEqualTo("FAILED");
+            assertThat(response.status()).isEqualTo("ACCOUNT_LOCKED");
             // Verify lockout event published
             verify(eventPublisher).publish(eq(InnaITTopics.ACCOUNT_STATUS_CHANGED), any(EventEnvelope.class));
             verify(eventPublisher).publish(eq(InnaITTopics.AUTH_FAILED), any(EventEnvelope.class));
@@ -254,7 +254,7 @@ class AuthOrchestrationServiceTest {
 
             PrimaryFactorResponse response = service.submitPrimaryFactor(request);
 
-            assertThat(response.state()).isEqualTo("PRIMARY_CHALLENGE");
+            assertThat(response.status()).isEqualTo("INVALID_CREDENTIALS");
         }
 
         @Test
@@ -304,7 +304,7 @@ class AuthOrchestrationServiceTest {
 
             MfaFactorResponse response = service.submitMfaFactor(request);
 
-            assertThat(response.state()).isEqualTo("COMPLETED");
+            assertThat(response.status()).isEqualTo("AUTHENTICATED");
             assertThat(response.tokens()).isNotNull();
         }
 
@@ -321,7 +321,7 @@ class AuthOrchestrationServiceTest {
 
             MfaFactorResponse response = service.submitMfaFactor(request);
 
-            assertThat(response.state()).isEqualTo("COMPLETED");
+            assertThat(response.status()).isEqualTo("AUTHENTICATED");
         }
 
         @Test
@@ -337,7 +337,7 @@ class AuthOrchestrationServiceTest {
 
             MfaFactorResponse response = service.submitMfaFactor(request);
 
-            assertThat(response.state()).isEqualTo("COMPLETED");
+            assertThat(response.status()).isEqualTo("AUTHENTICATED");
         }
 
         @Test
@@ -353,7 +353,7 @@ class AuthOrchestrationServiceTest {
 
             MfaFactorResponse response = service.submitMfaFactor(request);
 
-            assertThat(response.state()).isEqualTo("COMPLETED");
+            assertThat(response.status()).isEqualTo("AUTHENTICATED");
         }
 
         @Test
@@ -370,7 +370,7 @@ class AuthOrchestrationServiceTest {
 
             MfaFactorResponse response = service.submitMfaFactor(request);
 
-            assertThat(response.state()).isEqualTo("FAILED");
+            assertThat(response.status()).isEqualTo("ACCOUNT_LOCKED");
             verify(eventPublisher).publish(eq(InnaITTopics.AUTH_FAILED), any(EventEnvelope.class));
         }
 
@@ -528,7 +528,7 @@ class AuthOrchestrationServiceTest {
             PrimaryFactorResponse primaryResponse = service.submitPrimaryFactor(
                     new FactorSubmitRequest(txnId, "PASSWORD", Map.of("password", "pass123")));
 
-            assertThat(primaryResponse.state()).isEqualTo("MFA_CHALLENGE");
+            assertThat(primaryResponse.status()).isEqualTo("MFA_REQUIRED");
             assertThat(primaryResponse.mfaRequired()).isTrue();
 
             // 3. Submit TOTP
@@ -540,7 +540,7 @@ class AuthOrchestrationServiceTest {
             MfaFactorResponse mfaResponse = service.submitMfaFactor(
                     new FactorSubmitRequest(txnId, "TOTP", Map.of("code", "654321")));
 
-            assertThat(mfaResponse.state()).isEqualTo("COMPLETED");
+            assertThat(mfaResponse.status()).isEqualTo("AUTHENTICATED");
             assertThat(mfaResponse.tokens()).isNotNull();
         }
 
@@ -564,7 +564,7 @@ class AuthOrchestrationServiceTest {
                     new FactorSubmitRequest(initResponse.txnId(), "FIDO",
                             Map.of("credentialId", "cred-1", "authenticatorData", "authData")));
 
-            assertThat(response.state()).isEqualTo("COMPLETED");
+            assertThat(response.status()).isEqualTo("AUTHENTICATED");
             assertThat(response.mfaRequired()).isFalse();
             assertThat(response.tokens()).isNotNull();
         }

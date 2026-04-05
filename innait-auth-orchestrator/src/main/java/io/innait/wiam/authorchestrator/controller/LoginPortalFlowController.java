@@ -54,7 +54,7 @@ public class LoginPortalFlowController {
                 "response", Map.of(
                         "txnId", "{uuid}",
                         "state", "PRIMARY_CHALLENGE",
-                        "primaryMethods", List.of("MAGIC_LINK")),
+                        "availableMethods", List.of("MAGIC_LINK")),
                 "uiRoute", "/login"
         ));
 

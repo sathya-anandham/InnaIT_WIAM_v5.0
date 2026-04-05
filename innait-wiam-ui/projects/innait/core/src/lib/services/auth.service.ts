@@ -28,13 +28,22 @@ interface StepUpResponse {
   acr?: string;
 }
 
+function getCookieValue(name: string): string | null {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly apiBase = '/api/v1/auth';
   private readonly tokenApiBase = '/api/v1/tokens';
   private readonly sessionApiBase = '/api/v1/sessions';
 
-  private readonly authState$ = new BehaviorSubject<AuthState>({ ...INITIAL_AUTH_STATE });
+  private static readonly AUTH_COOKIE = 'innait_auth';
+
+  private readonly authState$ = new BehaviorSubject<AuthState>(
+    AuthService.loadFromCookie() ?? { ...INITIAL_AUTH_STATE }
+  );
 
   constructor(
     private readonly http: HttpClient,
@@ -115,13 +124,14 @@ export class AuthService {
   }
 
   clearState(): void {
+    AuthService.deleteCookie(AuthService.AUTH_COOKIE);
     this.authState$.next({ ...INITIAL_AUTH_STATE });
     this.router.navigate(['/login']);
   }
 
   private handleStepResponse(response: StepUpResponse): void {
     if (response.status === 'AUTHENTICATED') {
-      this.authState$.next({
+      const newState: AuthState = {
         status: 'AUTHENTICATED',
         txnId: response.txnId,
         accountId: response.accountId,
@@ -133,7 +143,9 @@ export class AuthService {
         amr: response.amr ?? [],
         acr: response.acr ?? '',
         sessionId: response.sessionId,
-      });
+      };
+      this.authState$.next(newState);
+      AuthService.saveToCookie(newState);
     } else if (response.status === 'MFA_REQUIRED') {
       this.authState$.next({
         ...this.currentState,
@@ -154,5 +166,26 @@ export class AuthService {
 
   private updateStatus(status: AuthStatus): void {
     this.authState$.next({ ...this.currentState, status });
+  }
+
+  private static loadFromCookie(): AuthState | null {
+    try {
+      const raw = getCookieValue(AuthService.AUTH_COOKIE);
+      if (!raw) return null;
+      const state = JSON.parse(decodeURIComponent(raw)) as AuthState;
+      return state.status === 'AUTHENTICATED' ? state : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private static saveToCookie(state: AuthState): void {
+    const value = encodeURIComponent(JSON.stringify(state));
+    const expires = new Date(Date.now() + 8 * 3600 * 1000).toUTCString();
+    document.cookie = `${AuthService.AUTH_COOKIE}=${value};expires=${expires};path=/;SameSite=Lax`;
+  }
+
+  private static deleteCookie(name: string): void {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=Lax`;
   }
 }

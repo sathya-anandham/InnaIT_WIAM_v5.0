@@ -61,8 +61,8 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.txnId").value(txnId.toString()))
                 .andExpect(jsonPath("$.data.state").value("PRIMARY_CHALLENGE"))
-                .andExpect(jsonPath("$.data.primaryMethods[0]").value("PASSWORD"))
-                .andExpect(jsonPath("$.data.primaryMethods[1]").value("FIDO"));
+                .andExpect(jsonPath("$.data.availableMethods[0]").value("PASSWORD"))
+                .andExpect(jsonPath("$.data.availableMethods[1]").value("FIDO"));
 
         verify(authService).initiateAuth(any(AuthInitiateRequest.class));
     }
@@ -77,8 +77,9 @@ class AuthControllerTest {
                 txnId, "PASSWORD", Map.of("password", "s3cur3Pa$$"));
 
         PrimaryFactorResponse response = new PrimaryFactorResponse(
-                txnId, "MFA_CHALLENGE", true,
-                List.of("TOTP", "FIDO"), null);
+                txnId, "MFA_REQUIRED", true,
+                List.of("TOTP", "FIDO"), null,
+                null, null, null, null, null, List.of(), List.of(), List.of(), null);
 
         when(authService.submitPrimaryFactor(any(FactorSubmitRequest.class))).thenReturn(response);
 
@@ -88,9 +89,9 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.txnId").value(txnId.toString()))
-                .andExpect(jsonPath("$.data.state").value("MFA_CHALLENGE"))
+                .andExpect(jsonPath("$.data.status").value("MFA_REQUIRED"))
                 .andExpect(jsonPath("$.data.mfaRequired").value(true))
-                .andExpect(jsonPath("$.data.mfaMethods[0]").value("TOTP"));
+                .andExpect(jsonPath("$.data.availableMfaMethods[0]").value("TOTP"));
 
         verify(authService).submitPrimaryFactor(any(FactorSubmitRequest.class));
     }
@@ -105,7 +106,8 @@ class AuthControllerTest {
                 txnId, "TOTP", Map.of("code", "123456"));
 
         TokenSet tokens = new TokenSet("access-token-xyz", "refresh-token-xyz", 3600);
-        MfaFactorResponse response = new MfaFactorResponse(txnId, "COMPLETED", tokens);
+        MfaFactorResponse response = new MfaFactorResponse(txnId, "AUTHENTICATED", tokens,
+                null, null, null, null, null, List.of(), List.of(), List.of(), null);
 
         when(authService.submitMfaFactor(any(FactorSubmitRequest.class))).thenReturn(response);
 
@@ -115,7 +117,7 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.txnId").value(txnId.toString()))
-                .andExpect(jsonPath("$.data.state").value("COMPLETED"))
+                .andExpect(jsonPath("$.data.status").value("AUTHENTICATED"))
                 .andExpect(jsonPath("$.data.tokens.accessToken").value("access-token-xyz"))
                 .andExpect(jsonPath("$.data.tokens.refreshToken").value("refresh-token-xyz"))
                 .andExpect(jsonPath("$.data.tokens.expiresIn").value(3600));
@@ -194,7 +196,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.txnId").value(txnId.toString()))
                 .andExpect(jsonPath("$.data.state").value("PRIMARY_CHALLENGE"))
-                .andExpect(jsonPath("$.data.primaryMethods").isArray());
+                .andExpect(jsonPath("$.data.availableMethods").isArray());
 
         verify(authService).initiateStepUp(any(StepUpInitiateRequest.class));
     }

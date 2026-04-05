@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public record FactorSubmitRequest(
         @NotNull UUID txnId,
-        @NotBlank String factorType,
-        Map<String, String> factorData
+        @NotBlank String type,
+        Map<String, String> data
 ) {
 }

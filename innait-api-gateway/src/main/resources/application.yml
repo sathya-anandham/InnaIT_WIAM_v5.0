@@ -3,6 +3,9 @@ spring:
     name: innait-api-gateway
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  autoconfigure:
+    exclude:
+      - io.innait.wiam.common.config.CommonAutoConfiguration
   cloud:
     gateway:
       default-filters:
