@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -43,6 +44,7 @@ public class AuthOrchestrationService {
     private final StringRedisTemplate redisTemplate;
     private final EventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
+    private final RestTemplate restTemplate;
 
     @Value("${innait.auth.txn-ttl-seconds:300}")
     private long txnTtlSeconds;
@@ -59,6 +61,9 @@ public class AuthOrchestrationService {
     @Value("${innait.auth.mfa-required:true}")
     private boolean defaultMfaRequired;
 
+    @Value("${TOKEN_SERVICE_URL:http://localhost:8086}")
+    private String tokenServiceUrl;
+
     public AuthOrchestrationService(AuthStateMachine stateMachine,
                                      AuthTransactionRepository txnRepo,
                                      AuthChallengeRepository challengeRepo,
@@ -66,7 +71,8 @@ public class AuthOrchestrationService {
                                      LoginAttemptRepository loginAttemptRepo,
                                      StringRedisTemplate redisTemplate,
                                      EventPublisher eventPublisher,
-                                     ObjectMapper objectMapper) {
+                                     ObjectMapper objectMapper,
+                                     RestTemplate restTemplate) {
         this.stateMachine = stateMachine;
         this.txnRepo = txnRepo;
         this.challengeRepo = challengeRepo;
@@ -75,7 +81,15 @@ public class AuthOrchestrationService {
         this.redisTemplate = redisTemplate;
         this.eventPublisher = eventPublisher;
         this.objectMapper = objectMapper;
+        this.restTemplate = restTemplate;
     }
+
+    // Local DTOs for token service inter-service call
+    private record TokenApiRequest(UUID sessionId, UUID accountId, UUID tenantId,
+                                    String loginId, List<String> roles, List<String> groups,
+                                    List<String> amr, String acr) {}
+    private record TokenApiData(String accessToken, String refreshToken, long expiresIn) {}
+    private record TokenApiResponse(String status, TokenApiData data) {}
 
     // ---- Initiate Auth ----
 
@@ -373,7 +387,7 @@ public class AuthOrchestrationService {
         }
 
         // Issue tokens for the now-authenticated user
-        issueTokens(session);
+        issueTokens(session, UUID.randomUUID());
         createAuthResult(txnId, session.getTenantId(), AuthResultType.SUCCESS,
                 session.getAuthMethodsUsed(), null, null);
 
@@ -450,7 +464,8 @@ public class AuthOrchestrationService {
             saveSession(session);
             updateTransactionState(session.getTxnId(), completedState, Instant.now());
 
-            TokenSet tokens = issueTokens(session);
+            UUID sessionId = UUID.randomUUID();
+            TokenSet tokens = issueTokens(session, sessionId);
             createAuthResult(session.getTxnId(), session.getTenantId(), AuthResultType.SUCCESS,
                     session.getAuthMethodsUsed(), null, null);
 
@@ -459,10 +474,9 @@ public class AuthOrchestrationService {
                     Map.of("accountId", session.getAccountId() != null ? session.getAccountId().toString() : "",
                             "methods", String.join(",", session.getAuthMethodsUsed())));
 
-            String sessionId = UUID.randomUUID().toString();
             return new PrimaryFactorResponse(session.getTxnId(), "AUTHENTICATED",
                     false, List.of(), tokens,
-                    sessionId, session.getAccountId(), session.getUserId(),
+                    sessionId.toString(), session.getAccountId(), session.getUserId(),
                     session.getLoginId(), session.getDisplayName(),
                     session.getRoles(), session.getGroups(),
                     session.getAuthMethodsUsed(), "urn:innait:authn:primary");
@@ -528,7 +542,8 @@ public class AuthOrchestrationService {
         saveSession(session);
         updateTransactionState(session.getTxnId(), completed, Instant.now());
 
-        TokenSet tokens = issueTokens(session);
+        UUID mfaSessionId = UUID.randomUUID();
+        TokenSet tokens = issueTokens(session, mfaSessionId);
         createAuthResult(session.getTxnId(), session.getTenantId(), AuthResultType.SUCCESS,
                 session.getAuthMethodsUsed(), null, null);
 
@@ -538,9 +553,8 @@ public class AuthOrchestrationService {
                         "methods", String.join(",", session.getAuthMethodsUsed())));
 
         log.info("Auth completed: txnId={}", session.getTxnId());
-        String mfaSessionId = UUID.randomUUID().toString();
         return new MfaFactorResponse(session.getTxnId(), "AUTHENTICATED", tokens,
-                mfaSessionId, session.getAccountId(), session.getUserId(),
+                mfaSessionId.toString(), session.getAccountId(), session.getUserId(),
                 session.getLoginId(), session.getDisplayName(),
                 session.getRoles(), session.getGroups(),
                 session.getAuthMethodsUsed(), "urn:innait:authn:mfa");
@@ -587,6 +601,9 @@ public class AuthOrchestrationService {
             session.setDisplayName(session.getLoginId());
             session.setRoles(List.of("SUPER_ADMIN"));
             session.setGroups(List.of());
+        }
+        if (session.getAccountId() == null) {
+            session.setAccountId(UUID.randomUUID());
         }
         log.debug("Password verification delegated for loginId={}", session.getLoginId());
         return true;
@@ -657,9 +674,30 @@ public class AuthOrchestrationService {
 
     // ---- Token Issuance ----
 
-    private TokenSet issueTokens(AuthSessionData session) {
-        // In production: call Token Service to issue JWT
-        // Placeholder returning stub tokens
+    private TokenSet issueTokens(AuthSessionData session, UUID sessionId) {
+        try {
+            TokenApiRequest tokenRequest = new TokenApiRequest(
+                    sessionId,
+                    session.getAccountId(),
+                    session.getTenantId(),
+                    session.getLoginId(),
+                    session.getRoles() != null ? session.getRoles() : List.of(),
+                    session.getGroups() != null ? session.getGroups() : List.of(),
+                    session.getAuthMethodsUsed(),
+                    "urn:innait:authn:primary"
+            );
+            TokenApiResponse apiResponse = restTemplate.postForObject(
+                    tokenServiceUrl + "/api/v1/tokens/issue",
+                    tokenRequest,
+                    TokenApiResponse.class
+            );
+            if (apiResponse != null && apiResponse.data() != null) {
+                TokenApiData d = apiResponse.data();
+                return new TokenSet(d.accessToken(), d.refreshToken(), d.expiresIn());
+            }
+        } catch (Exception e) {
+            log.warn("Token service call failed, using placeholder: {}", e.getMessage());
+        }
         return new TokenSet(
                 "access-token-" + session.getTxnId(),
                 "refresh-token-" + session.getTxnId(),

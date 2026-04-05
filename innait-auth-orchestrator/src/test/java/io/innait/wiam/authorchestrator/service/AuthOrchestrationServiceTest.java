@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -50,6 +51,7 @@ class AuthOrchestrationServiceTest {
     @Mock private StringRedisTemplate redisTemplate;
     @Mock private ValueOperations<String, String> valueOperations;
     @Mock private EventPublisher eventPublisher;
+    @Mock private RestTemplate restTemplate;
 
     private AuthOrchestrationService service;
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
@@ -63,7 +65,7 @@ class AuthOrchestrationServiceTest {
         CorrelationContext.setCorrelationId(UUID.randomUUID());
         service = new AuthOrchestrationService(
                 stateMachine, txnRepo, challengeRepo, resultRepo, loginAttemptRepo,
-                redisTemplate, eventPublisher, objectMapper
+                redisTemplate, eventPublisher, objectMapper, restTemplate
         );
     }
 

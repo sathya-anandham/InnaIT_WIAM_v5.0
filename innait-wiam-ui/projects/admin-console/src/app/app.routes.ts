@@ -1,5 +1,11 @@
 import { Routes } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
 import { authGuard, roleGuard } from '@innait/core';
+
+@Component({ selector: 'app-login-redirect', template: '', standalone: true })
+class LoginRedirectComponent implements OnInit {
+  ngOnInit(): void { window.location.href = 'http://localhost:4200'; }
+}
 
 export const routes: Routes = [
   {
@@ -194,5 +200,7 @@ export const routes: Routes = [
       },
     ],
   },
+  { path: 'login', component: LoginRedirectComponent },
+  { path: 'forbidden', component: LoginRedirectComponent },
   { path: '**', redirectTo: '' },
 ];

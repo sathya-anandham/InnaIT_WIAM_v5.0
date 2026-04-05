@@ -17,6 +17,7 @@ interface StepUpResponse {
   status: string;
   nextStep?: string;
   availableMfaMethods?: string[];
+  tokens?: { accessToken?: string; refreshToken?: string; expiresIn?: number };
   sessionId?: string;
   accountId?: string;
   userId?: string;
@@ -125,6 +126,7 @@ export class AuthService {
 
   clearState(): void {
     AuthService.deleteCookie(AuthService.AUTH_COOKIE);
+    AuthService.deleteCookie('INNAIT_TOKEN');
     this.authState$.next({ ...INITIAL_AUTH_STATE });
     this.router.navigate(['/login']);
   }
@@ -146,6 +148,9 @@ export class AuthService {
       };
       this.authState$.next(newState);
       AuthService.saveToCookie(newState);
+      if (response.tokens?.accessToken) {
+        AuthService.saveTokenCookie(response.tokens.accessToken, response.tokens.expiresIn ?? 3600);
+      }
     } else if (response.status === 'MFA_REQUIRED') {
       this.authState$.next({
         ...this.currentState,
@@ -183,6 +188,11 @@ export class AuthService {
     const value = encodeURIComponent(JSON.stringify(state));
     const expires = new Date(Date.now() + 8 * 3600 * 1000).toUTCString();
     document.cookie = `${AuthService.AUTH_COOKIE}=${value};expires=${expires};path=/;SameSite=Lax`;
+  }
+
+  private static saveTokenCookie(accessToken: string, expiresInSeconds: number): void {
+    const expires = new Date(Date.now() + expiresInSeconds * 1000).toUTCString();
+    document.cookie = `INNAIT_TOKEN=${accessToken};expires=${expires};path=/;SameSite=Lax`;
   }
 
   private static deleteCookie(name: string): void {

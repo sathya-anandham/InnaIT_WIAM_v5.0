@@ -429,6 +429,7 @@ services:
       - docker/common.env
     environment:
       ORACLE_PASSWORD:          "${ORACLE_WIAM_PASSWORD}"
+      CORS_ORIGINS:             "http://localhost:4200,http://localhost:4300,http://localhost:4400"
       IDENTITY_SERVICE_URL:     "http://innait-identity-service:8081"
       CREDENTIAL_SERVICE_URL:   "http://innait-credential-service:8082"
       ADMIN_CONFIG_SERVICE_URL: "http://innait-admin-config-service:8090"
