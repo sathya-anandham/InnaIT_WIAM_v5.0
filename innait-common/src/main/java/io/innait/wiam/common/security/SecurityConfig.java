@@ -49,7 +49,10 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/api/v1/auth/login/**",
                                 "/api/v1/self/credentials/password/forgot",
-                                "/api/v1/admin/tenants/resolve/**"
+                                "/api/v1/admin/tenants/resolve/**",
+                                // Token service: internal service-to-service endpoints
+                                "/api/v1/tokens/**",
+                                "/.well-known/jwks.json"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
